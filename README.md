@@ -1,30 +1,42 @@
 # noregna.no
 
-A rebuild of the Noregna marketing site in React. Next.js 16 (App Router) with
-Tailwind v4, Norwegian and English, seven pages each.
+The Noregna marketing site, rebuilt in Next.js 16 (App Router) with Tailwind v4.
+Norwegian and English, seven pages each. It replaces the Laravel site at
+`NoregnaWeb`, which is what runs on noregna.no today.
 
-The homepage argues three products in order — the platform the firm works in,
-the client portal, and Noregna Invoice, which is free and deliberately not part
-of the platform. That last fact was previously reachable only through the FAQ.
+The homepage argues three products in order: the platform the accounting firm
+works in, the client portal its clients use, and Noregna Invoice, which is free
+and deliberately not part of the platform.
 
 ## Running it
 
 ```bash
 npm install
-npm run dev      # http://localhost:3000
+npm run dev          # http://localhost:3000
+npm run build        # production build, must pass before shipping
+npm start            # serve the production build
+npx tsc --noEmit     # typecheck
+npm run lint         # lint
 ```
 
-```bash
-npm run build && npm start    # production build
-npx tsc --noEmit              # typecheck
-npx eslint src                # lint
-```
+## Environment
+
+Copy `.env.example` to `.env.local` locally, and set the same variables in the
+hosting environment. Nothing here is committed.
+
+| Variable | Purpose |
+| --- | --- |
+| `MAIL_HOST`, `MAIL_PORT`, `MAIL_ENCRYPTION`, `MAIL_USERNAME`, `MAIL_PASSWORD` | SMTP for the contact form. Same names as the Laravel `.env`, so values copy straight across. |
+| `MAIL_FROM_ADDRESS`, `MAIL_FROM_NAME` | Sender of both contact e-mails. |
+| `CONTACT_TO` | Inbox that receives enquiries. Defaults to post@noregna.no. |
+| `NEXT_PUBLIC_RECAPTCHA_SITE_KEY`, `RECAPTCHA_SECRET_KEY` | Google reCAPTCHA v2 on the contact form. Leave both empty to run without it. |
+| `CONTACT_WEBHOOK_URL` | Optional. Used only if SMTP is not configured. |
+| `GOOGLE_SITE_VERIFICATION` | Search Console ownership token. Empty means no meta tag. |
 
 ## Routes
 
-Norwegian sits at the root on the **same slugs the live site already uses**, so
-existing links, bookmarks and search rankings survive. English mirrors it under
-`/en`.
+Norwegian sits at the root on the same slugs the live site already uses, so
+existing links, bookmarks and rankings survive. English mirrors it under `/en`.
 
 | Page | Norwegian | English |
 | --- | --- | --- |
@@ -36,211 +48,176 @@ existing links, bookmarks and search rankings survive. English mirrors it under
 | Informasjonskapsler | `/cookies` | `/en/cookies` |
 | Kjøps- og leveringsbetingelser | `/kjopsbetingelser` | `/en/kjopsbetingelser` |
 
-Each language tree has its own root layout (`src/app/(no)`, `src/app/(en)`) so
-`<html lang>` is genuinely correct rather than hardcoded. `sitemap.xml` and
-`robots.txt` are generated, and every page declares `hreflang` alternates.
+Each language tree has its own root layout, so `<html lang>` is correct rather
+than hardcoded. Any unknown address is caught by a `[...notFound]` route in its
+tree and gets a 404 in the right language, inside the site's own header and
+footer.
 
 ## Where things live
 
 ```
 src/
-  app/(no)/            Norwegian routes + root layout + 404 + favicon
-  app/(en)/en/         English routes + root layout + favicon
-  app/api/contact/     Contact form endpoint
-  app/globals.css      Design tokens: colour, type, radius, motion, utilities
-  content/site.ts      Every visible string, both languages
-  app/api/brreg/       Brønnøysund company lookup proxy
-  content/legal/       Noregna's own legal HTML, verbatim
+  app/
+    (no)/                  Norwegian routes, root layout, 404, link preview image
+    (en)/en/               The English mirror
+    api/contact/           Contact form endpoint
+    api/brreg/             Brønnøysund company lookup proxy
+    sitemap.ts, robots.ts  Generated /sitemap.xml and /robots.txt
+    globals.css            Design tokens, utilities, hero and carousel motion
+  content/
+    site.ts                Every visible string, both languages
+    app-shots.ts           The 13 app screens, in the order the app is used
+    legal/                 Noregna's own legal HTML, verbatim
   components/
-    site/              Header, SystemsMenu, FooterField, shell, theme toggle
-    home/              The homepage sections
-    pages/             Page compositions incl. LegalPage
-    contact/           Contact form + company search
-    product/           DashboardPreview, InvoicePreview, VideoPlayer
-    ui/                Display, Button, Section, IconBadge, Reveal
+    site/                  Header, SystemsMenu, FooterField, SiteShell, JsonLd, ThemeToggle
+    home/                  Homepage sections: HeroPower, WhyBento, SystemsRail,
+                           ProductTrio, Overview, Outcomes, Faq
+    pages/                 Page compositions, ServicesIndex, NotFoundPage, LegalPage
+    contact/               ContactForm, CompanySearch, Recaptcha
+    product/               DashboardPreview, InvoicePreview, PlatformModules,
+                           PhoneFrame, PhoneCarousel, StoreBadges
+    ui/                    Display, Button, Section, IconBadge, Reveal
   lib/
-    icons.tsx          Phosphor icon set, referenced by key from content
-    routing.ts         Locale and page-to-href mapping
-design-system/
-  noregna/MASTER.md    The locked design system. Read before changing visuals.
+    contact-mail.ts        The two contact e-mails
+    og.tsx                 Link preview card renderer
+    routing.ts             Locale and page-to-href mapping
+    modules.ts             Module short names
+    icons.tsx              Phosphor icon set, referenced by key from content
+design-system/noregna/MASTER.md   The locked design system. Read before changing visuals.
 public/
-  brand/               Wordmark, dashboard reference, app video + poster, badges
-  app-screens/         The six client-portal screenshots
+  brand/                   Wordmark and its untouched original, store badges
+  app-shots/               Sanitised Kundeportal screenshots (WebP)
 ```
 
-## The header
+## The pages
 
-`Váre systemer` opens a panel rather than navigating. A four-word nav told a
-first-time visitor nothing about the product; the eight modules and three
-products were invisible until they committed to a page. The panel lists all
-eight modules with their taglines and all three products with where each one
-lives and what it costs to get into.
+**Header.** `Våre systemer` is a link to the systems page. The caret beside it
+opens a panel listing all eight modules and all three products, including that
+Invoice is free and separate. Hover opens it on pointer devices only, tested
+with `matchMedia("(hover: hover)")` rather than the event's pointer type, which
+is unreliable. On phones the menu is a sheet that slides open and closes on
+Escape, the close button, or a drag of its handle.
 
-It is a real `<button>` that toggles on click, so keyboard and touch work
-without hover. Hover-to-open is gated on `matchMedia("(hover: hover)")` rather
-than on `event.pointerType`, which is inconsistent across browsers and silently
-disabled the interaction entirely. Escape closes and returns focus to the
-trigger. On phones the same eight modules expand inline in the sheet.
+**Home.** A green hero with the product dashboard straddling the seam, then the
+three product rows. Row 01 shows the seven platform modules rather than repeating
+the hero dashboard. Row 02 is one phone cycling through the app screens, with
+swipe and arrows. Row 03 is the Invoice preview.
 
-## Type scale
+**Våre systemer.** One card per module. The sidebar highlights the module named
+in the address on arrival (for example `#fremdrift`) and follows the card being
+read while scrolling. Every list on the site names modules by their product word,
+so a link reading "Fremdrift" lands on "Fremdrift".
 
-Four levels in `ui/Display.tsx`, plus the `.card-title` utility, and nothing
-outside them:
-
-| Level | lg size | Role |
-| --- | --- | --- |
-| — | 44px | the homepage hero, the one sanctioned exception |
-| 1 | 40px | page titles (matches noregna.no's h1) |
-| 2 | 32px | section titles (matches noregna.no's h2) |
-| 3 | 24px | product row titles |
-| 4 | 19px | sub-headings, form legends, legal section headings |
-| `.card-title` | 17px | titles inside a bordered card |
-
-Body copy is 16px, matching noregna.no exactly. An audit of every rendered
-heading is the only way to keep this honest — the site had twice drifted into
-two parallel systems, once at 44/34/19 against hand-written 30px and 22px
-headings. Measure before changing a value.
-
-## Content
-
-All copy in `src/content/site.ts` is Noregna's own, taken from the live site in
-both languages. Nothing is invented: no made-up statistics, client names,
-certifications or capabilities. Two editorial changes were made:
-
-Every string traces to `resources/lang/{no,en}/messages.php` in the Laravel
-source. Two editorial changes only:
-
-- En-dashes and em-dashes normalised to hyphens.
-- The contact page's `contact_info_text` is Norwegian lorem ipsum in the source
-  ("Det er et velkjent faktum at lesere blir distrahert av lesbart innhold."),
-  and `form_title` is "Frigjør kraften i teknologi" / "Unleash the Power of
-  Technology". Both were replaced with plain functional copy; shipping lorem
-  ipsum on a live contact page is a bug, not content.
-
-Pricing has no section of its own on the live site (it is answered inside FAQ
-item 04), so it has none here either.
-
-Two structural changes, both of which move Noregna's own copy rather than adding
-any:
-
-- **Outcomes** is FAQ answer 3, promoted out of a collapsed accordion where
-  nobody was reading the most persuasive paragraph on the site.
-- **ProductTrio** replaces the separate client-portal section and invoice band,
-  which were two unrelated blocks arguing the same thing badly.
-
-The strings written for the product section, and used nowhere else, are
-`home.products.*`: a section label, a lead assembled from Noregna's own
-statements about what is and is not part of the platform, and lines that state
-an address rather than make a claim.
+**App.** A fan of phones: one on small phones, three from tablet width, five on
+wide screens where they fit without being cut.
 
 ## Contact form
 
-`POST /api/contact` validates server-side, caps field lengths, rate-limits per
-IP, and uses a honeypot rather than a third-party captcha script.
+`POST /api/contact` validates server-side, caps field lengths, rate-limits
+per IP, and has a honeypot field. Delivery, in order of preference:
 
-**Delivery is not wired up.** Set the destination and it forwards there:
+1. **SMTP configured:** an e-mail to the Noregna inbox with the visitor set as
+   reply-to, and a confirmation to the visitor in their language. This matches
+   what the Laravel site sent.
+2. **Webhook configured:** the submission is posted as JSON.
+3. **Neither, in development:** accepted and reported as success so the flow can
+   be demonstrated. Nothing is delivered.
+4. **Neither, in production:** returns 503, so the form shows its error and points
+   the visitor at post@noregna.no instead of silently losing an enquiry.
 
-```bash
-# .env.local
-CONTACT_WEBHOOK_URL=https://your-endpoint.example/noregna-contact
-```
+With `RECAPTCHA_SECRET_KEY` set, a valid reCAPTCHA token is required; without
+it the check is skipped. Nothing is written to disk or logged, and there is no
+database: the e-mail is the only record.
 
-Without that variable:
+The company search proxies the Brønnøysund open register so a visitor can pick
+their company and send its organisation number. A failed lookup never blocks
+the form; the manual field still submits.
 
-- **development** accepts the submission and reports success, so the flow is
-  demonstrable. Nothing is delivered.
-- **production** returns 503, so the form shows its error state and points the
-  visitor at post@noregna.no rather than silently swallowing a real enquiry.
+## Search and sharing
 
-Nothing in the endpoint writes personal data to disk or to logs.
+- Generated `sitemap.xml` (all 14 pages, with language alternates) and `robots.txt`.
+- A title, description, canonical URL and language alternates on every page.
+- Organization and WebSite structured data from the site's own published details.
+- A link preview card per language, generated at build time from the hero copy.
+- A Search Console verification tag driven by `GOOGLE_SITE_VERIFICATION`.
 
-## The hero dashboard
+## Security
 
-`src/components/product/DashboardPreview.tsx` reproduces the shipped Noregna
-dashboard in markup rather than embedding a screenshot. Layout, labels, colours,
-icon placement and proportions follow the real product; only the data differs.
+`next.config.ts` sets `X-Content-Type-Options`, `X-Frame-Options`,
+`Referrer-Policy` and `Permissions-Policy`, and removes the `X-Powered-By`
+header. There is no Content-Security-Policy yet: reCAPTCHA needs a nonce per
+request, which is a deliberate change rather than a checklist line.
 
-Two reasons it is built rather than pasted in:
+## Motion and themes
 
-1. **Privacy.** The real dashboard is full of live client names and personal
-   email addresses. None of that belongs on a public page. Every name here is
-   dummy data (Alpha, Beta, Gamma, Delta, Epsilon), matching the placeholder set
-   Noregna already uses in its own product imagery.
-2. **Legibility.** A 1920px screenshot scaled into a hero column renders at
-   about 44% and the deadline table turns to mush. This stays sharp at any size.
+- Scroll reveals ship visible. Only a block below the fold is hidden, and it
+  reveals as it scrolls in. This keeps the first paint fast.
+- The hero has a CSS entrance and two slow drifting lights, so it starts
+  animating at first paint.
+- Everything respects `prefers-reduced-motion`.
+- Light is the default. Dark is opt-in from the header, remembered, and applied
+  before first paint. The operating system setting is not consulted.
 
-**The `crop` prop must land on a card boundary.** Measured landmarks inside the
-782px design: 480 ends the Task Reminder card, 492 begins Recent Clients, 531
-begins its table (so 560 is the bottom of its *column header* row), 701 ends the
-card. Cropping at 560 showed the column headings with not one client under them,
-which reads as a rendering fault rather than a crop. Cut at 480 or 701.
+Design values, the type scale and the reasoning behind them are in
+`design-system/noregna/MASTER.md`.
 
-It is drawn at a fixed 1180×782 design size and scaled with a `--s` custom
-property per breakpoint, so the sidebar-to-content proportions never distort. At
-`xl` it renders near 1:1. On phones it is scaled up and slid left so the deadline
-ring and task rows stay readable while the sidebar moves off-canvas.
+## Product imagery
 
-`public/brand/hero-wide.png` is kept as the reference screenshot the component
-reproduces. It is not used on any page.
+**The hero dashboard** (`DashboardPreview.tsx`) is the real Noregna dashboard
+rebuilt in markup, with every label in both languages. It is built rather than
+screenshotted because the real one shows live client names and e-mail addresses,
+and because a scaled screenshot turns to mush. Every name in it is dummy data.
+Its `crop` prop must land on a card boundary; see MASTER.md §13.
 
-## Assets
-
-`public/brand/noregna-wordmark.png` is the supplied logo with its background
-made genuinely transparent. Despite its `-removebg` filename, the original was
-fully opaque white, which rendered as a white box in dark mode. The untouched
-original is kept at `noregna-wordmark-original.png` so the conversion can be
-regenerated.
-
-`faq-img.webp` from the live site was **not** carried over. It is a Dreamstime
-stock image with the watermark still visible.
-
-## Design system
-
-Locked in `design-system/noregna/MASTER.md`. Read it before changing any visual
-value. It records the OKLCH brand ramp sampled from the wordmark, the type
-scale, shape and motion tokens, and — importantly — the three places where the
-generated recommendation was deliberately overridden, with reasons.
+**The app screenshots** are sanitised captures of the Kundeportal app. Every
+screen shows only the demo identity: Demo Handel AS, Anna, Kari Nordmann and
+Demo Regnskap AS. They were cleaned and converted in the Laravel repository
+(`resources/img-src/app-shots` and `scripts/build-app-shots.php`). The raw
+captures contain real client data, live in the gitignored `app images/` folder,
+and must never be used.
 
 ## Legal pages
 
-`src/content/legal/*.html` are Noregna's own fragments, lifted verbatim from
-`resources/views/legal/`. Two changes only:
+`src/content/legal/*.html` are Noregna's own texts, lifted verbatim from the
+Laravel site and checked against the live pages. Two mechanical changes only:
+Blade route helpers became `__PRIVACY__`-style tokens swapped per language, and
+the paragraphs shown only when analytics is switched on were dropped, because
+this site runs no analytics. There is no English translation of the purchase
+terms in the source, so `/en/kjopsbetingelser` shows the Norwegian text under a
+notice that the Norwegian version is binding.
 
-- Blade `route()` helpers became `__PRIVACY__` / `__COOKIES__` / `__TERMS__` /
-  `__SERVICES__` tokens, swapped per locale in `LegalPage`.
-- The paragraphs wrapped in `@if (config('services.analytics.src'))` were
-  dropped. This build ships no analytics tool, and a privacy notice must not
-  claim one.
+## Content
 
-There is no English translation of the purchase terms in the source, so `/en/kjopsbetingelser`
-renders the Norwegian text under Noregna's own English notice that the Norwegian
-version is the binding one.
+Every string in `src/content/site.ts` is Noregna's own copy from the live site
+in both languages. Nothing is invented: no statistics, client names,
+certifications or capabilities. Editorial changes were limited to normalising
+dashes, replacing lorem ipsum that shipped on the old contact page, and a small
+set of structural labels for the products section, listed in MASTER.md §11.
 
-## The app video
+`public/brand/noregna-wordmark.png` is the supplied logo with its background
+made truly transparent; the untouched original is kept beside it so the change
+can be redone.
 
-10.5 MB, at `public/brand/noregna-app.mp4`. The original markup autoplays it on
-load, so every visitor paid that download before deciding they wanted it, on
-mobile data included. Here it is a click-to-play facade: `preload="none"`, a
-real poster image, and the file is only fetched when someone presses play.
-It should move to a CDN or be re-encoded before launch.
+## Verified
 
-## Company lookup
+Measured on the production build on 2026-09-15, Lighthouse mobile profile.
 
-`/api/brreg` proxies the Brønnøysund open register so the contact form can find
-a company by name and capture its organisation number. Proxied rather than
-called from the browser so the request stays same-origin and can be cached. A
-failed lookup never blocks the form: the manual organisation field still submits.
+| Page | Performance | Accessibility | Best practices | SEO |
+| --- | --- | --- | --- | --- |
+| Home | 85 | 100 | 100 | 100 |
+| Våre systemer | 91 | 100 | 100 | 100 |
+| App | 86 | 100 | 100 | 100 |
+| Kontakt oss | 91 | 100 | 100 | 100 |
+
+A crawl of all 14 pages found one H1 per page, no skipped heading levels, alt
+text on every image, no broken internal links and no dangling anchors. No page
+scrolls sideways at 390, 768 or 1440 pixels, in light or dark.
 
 ## Still open
 
-- Contact form delivery endpoint (`CONTACT_WEBHOOK_URL`) and, if you want it
-  back, the reCAPTCHA key.
-- **Integration logos are NOT used.** `integrations.blade.php` has alt text that
-  contradicts its own image files: `Timma-logo.png` is labelled "Savings Bank
-  Logo", `DNB.png` is labelled "EIKA Group Logo", `Zettle-av-iizy.png` is
-  labelled "Nordea Logo". Until someone confirms which partnerships are real,
-  shipping them would be claiming relationships that may not exist.
-- LinkedIn is `href="#"` in the source footer, so it is omitted rather than
-  shipped as a dead link.
-- No customer logo wall or headline figures: there are no verified numbers, and
-  inventing them was not an option.
+- Fill in the SMTP, reCAPTCHA and Search Console values in the host environment.
+- Register the site in Google Search Console and submit the sitemap.
+- Integration partner logos are not shown. The old integrations page labelled
+  its logo files with different company names, so which partnerships are real
+  needs confirming first.
+- LinkedIn is not linked; the old footer pointed it at `#`.

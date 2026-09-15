@@ -1,7 +1,8 @@
-import Image from "next/image";
 import { Button } from "@/components/ui/Button";
-import { DashboardPreview } from "@/components/product/DashboardPreview";
 import { InvoicePreview } from "@/components/product/InvoicePreview";
+import { PhoneCarousel } from "@/components/product/PhoneCarousel";
+import { PlatformModules } from "@/components/product/PlatformModules";
+import { APP_SHOTS } from "@/content/app-shots";
 import { Display } from "@/components/ui/Display";
 import { Section } from "@/components/ui/Section";
 import { Reveal } from "@/components/ui/Reveal";
@@ -53,6 +54,12 @@ type Row = {
   /** Which ground the row sits on. Same hue throughout, three depths. */
   ground: "page" | "field" | "tint";
   art: React.ReactNode;
+  /**
+   * Whether the art may run past the container on its side (the "window onto
+   * the product" treatment). A bordered card must not: its edge would be cut
+   * at the viewport, so it stays inside the column and fills it instead.
+   */
+  bleed?: boolean;
 };
 
 export function ProductTrio({
@@ -76,14 +83,10 @@ export function ProductTrio({
       href: EXTERNAL.app,
       external: true,
       ground: "page",
-      art: (
-        <div className="overflow-hidden rounded-[18px] border border-line bg-surface shadow-[0_30px_70px_-40px_oklch(0.252_0.0592_151.76_/_0.5)]">
-          <DashboardPreview
-            crop={470}
-            className="[--s:0.3]! sm:[--s:0.44]! lg:[--s:0.5]! xl:[--s:0.58]!"
-          />
-        </div>
-      ),
+      bleed: false,
+      // Not the dashboard again (the hero has it): the platform as its seven
+      // modules, which is the information this row is actually adding.
+      art: <PlatformModules t={t} />,
     },
     {
       index: "02",
@@ -97,23 +100,15 @@ export function ProductTrio({
       external: false,
       ground: "field",
       art: (
-        // drop-shadow, not shadow: the screenshots carry their own rounded
-        // handset frame with transparent corners, so a box-shadow draws a
-        // visible rectangle of haze around them instead of following the phone.
-        <div className="flex items-end justify-center gap-5 sm:gap-8">
-          <Image
-            src="/app-screens/screen-3.png"
-            alt={t.home.portal.imageAlt}
-            width={375}
-            height={666}
-            className="w-[7.5rem] translate-y-8 opacity-90 drop-shadow-[0_24px_40px_oklch(0.16_0.05_151.76_/_0.65)] sm:w-[10rem] lg:w-[12rem]"
-          />
-          <Image
-            src="/app-screens/screen-2.png"
-            alt={t.appPage.screenAlt}
-            width={375}
-            height={666}
-            className="w-[9rem] drop-shadow-[0_32px_54px_oklch(0.16_0.05_151.76_/_0.7)] sm:w-[12rem] lg:w-[14.5rem]"
+        // One CSS-drawn phone whose screen cycles through every Kundeportal
+        // screen. The arrows sit outside the bezel from md up; the row clips
+        // horizontally, so they never widen the page.
+        <div className="flex justify-center py-2 md:px-16">
+          <PhoneCarousel
+            slides={APP_SHOTS.map((s) => ({ ...s, alt: t.appPage.screens[s.key] }))}
+            prevLabel={t.appPage.carouselPrev}
+            nextLabel={t.appPage.carouselNext}
+            className="w-[13rem] sm:w-[15rem] lg:w-[16rem] xl:w-[17rem]"
           />
         </div>
       ),
@@ -271,7 +266,7 @@ function ProductRow({
           <Reveal
             y={24}
             delay={0.08}
-            className={`lg:col-span-7 ${flip ? "lg:order-1" : "lg:-mr-[8vw]"}`}
+            className={`lg:col-span-7 ${flip ? "lg:order-1" : row.bleed === false ? "" : "lg:-mr-[8vw]"}`}
           >
             <div className={flip ? "lg:flex lg:justify-center" : "lg:flex lg:justify-end"}>
               {row.art}

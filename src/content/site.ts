@@ -10,15 +10,9 @@
  * regular hyphens, or the sentence split, so the typography stays clean.
  */
 
+import type { AppShotKey } from "@/content/app-shots";
+
 export type Locale = "no" | "en";
-
-export const LOCALES: Locale[] = ["no", "en"];
-
-/** Norwegian lives at the root so the existing URLs keep working. */
-export function localePath(locale: Locale, path: string): string {
-  const clean = path === "/" ? "" : path;
-  return locale === "no" ? `/${clean.replace(/^\//, "")}` || "/" : `/en${clean}`;
-}
 
 export const EXTERNAL = {
   app: "https://app.noregna.no",
@@ -37,7 +31,6 @@ export const COMPANY = {
   orgNr: "933 233 391",
   address: "Østre Aker vei 17, 0581 Oslo",
   addressFull: "Østre Aker vei 17, 0581 Oslo, Norge",
-  country: "Norway",
   email: "post@noregna.no",
 } as const;
 
@@ -56,7 +49,6 @@ type SystemModule = {
 export type Dict = {
   meta: {
     locale: Locale;
-    htmlLang: string;
     siteName: string;
     titleHome: string;
     descHome: string;
@@ -74,21 +66,17 @@ export type Dict = {
     contact: string;
     login: string;
     tryFree: string;
-    bookDemo: string;
     menu: string;
     close: string;
     skipToContent: string;
     languageLabel: string;
     themeLabel: string;
   };
-  routes: { home: string; services: string; app: string; contact: string };
   home: {
     heroEyebrow: string;
     heroTitle: string;
     heroTitleAccent: string;
     heroLead: string;
-    heroImageAlt: string;
-    heroPlatform: string;
     heroTrustHints: string[];
     ctaPrimary: string;
     ctaSecondary: string;
@@ -107,9 +95,8 @@ export type Dict = {
       worthTitle: string;
       worth: { title: string; body: string }[];
       cta: string;
-      imageAlt: string;
     };
-    overview: { title: string; lead: string; points: string[]; close: string; imageAlt: string };
+    overview: { title: string; lead: string; points: string[]; close: string };
     outcomes: { title: string; lead: string; items: { title: string; body: string; icon: string }[] };
     /**
      * The section that separates the three products. Every product's name,
@@ -147,8 +134,6 @@ export type Dict = {
     modules: SystemModule[];
   };
   appPage: {
-    videoAlt: string;
-    playLabel: string;
     badgeApple: string;
     badgeGoogle: string;
     eyebrow: string;
@@ -158,8 +143,10 @@ export type Dict = {
     gets: Feature[];
     worthTitle: string;
     worth: { title: string; body: string }[];
-    galleryTitle: string;
-    screenAlt: string;
+    carouselPrev: string;
+    carouselNext: string;
+    /** Alt text for each app screen, keyed like APP_SHOTS. */
+    screens: Record<AppShotKey, string>;
   };
   contact: {
     title: string;
@@ -186,6 +173,7 @@ export type Dict = {
     errorRequired: string;
     errorEmail: string;
     errorGeneric: string;
+    errorCaptcha: string;
     reset: string;
     detailsTitle: string;
     addressLabel: string;
@@ -219,7 +207,6 @@ export type Dict = {
 const no: Dict = {
   meta: {
     locale: "no",
-    htmlLang: "no",
     siteName: "Noregna",
     titleHome: "Noregna - oppdragsstyring og kvalitetskontroll for regnskapsførere",
     descHome:
@@ -241,24 +228,18 @@ const no: Dict = {
     contact: "Kontakt oss",
     login: "Logg inn",
     tryFree: "Prøv gratis",
-    bookDemo: "Book demo",
     menu: "Meny",
     close: "Lukk",
     skipToContent: "Hopp til innhold",
     languageLabel: "Språk",
     themeLabel: "Bytt mellom lyst og mørkt tema",
   },
-  routes: { home: "/", services: "/ourservices", app: "/app", contact: "/contact-us" },
   home: {
     heroEyebrow: "Velkommen til Noregna",
     heroTitle: "Oppdragsstyring og kvalitetskontroll,",
     heroTitleAccent: "gjort enkelt for regnskapsførere",
     heroLead:
       "Full kontroll over oppdragene, med oversikt over alle frister, kvalitetssikring og hvitvaskingsoppfølging.",
-    heroImageAlt:
-      "Noregna-dashbordet med fristoversikt, rapportgraf og dokumentmapper",
-    heroPlatform:
-      "Noregna tilbyr en moderne, skybasert plattform som tar seg av kundehåndtering, oppgaveoversikt og friststyring på ett sted. Løsningen sikrer samtidig at arbeidet gjennomføres strukturert og dokumenteres i henhold til gjeldende krav i GRFS.",
     heroTrustHints: ["Kvalitetssikring", "Kundekontroll", "Sikker kundedialog", "Utviklet i Norge"],
     ctaPrimary: "Prøv gratis",
     ctaSecondary: "Book demo",
@@ -353,7 +334,6 @@ const no: Dict = {
         },
       ],
       cta: "Prøv gratis",
-      imageAlt: "Noregna Kundeportal vist på mobil",
     },
     overview: {
       title: "Full oversikt",
@@ -365,7 +345,6 @@ const no: Dict = {
       ],
       close:
         "Med Noregna kan du fokusere på det som er viktigst, samtidig som du holder deg trygg på at frister overholdes og dokumentasjonskravene er ivaretatt.",
-      imageAlt: "Dashbord i Noregna med fristoversikt og rapportgraf",
     },
     outcomes: {
       title: "Hva byrået får ut av Noregna",
@@ -638,8 +617,6 @@ const no: Dict = {
     ],
   },
   appPage: {
-    videoAlt: "Demonstrasjon av Noregna Kundeportal på mobil",
-    playLabel: "Spill av video",
     badgeApple: "Last ned Noregna-appen fra App Store",
     badgeGoogle: "Last ned Noregna-appen fra Google Play",
     eyebrow: "Noregna Kundeportal",
@@ -697,8 +674,23 @@ const no: Dict = {
         body: "Kommunikasjon og dokumentdeling skjer internt i systemet, ikke over e-post.",
       },
     ],
-    galleryTitle: "Slik ser den ut",
-    screenAlt: "Skjermbilde fra Noregna Kundeportal",
+    carouselPrev: "Forrige skjermbilde",
+    carouselNext: "Neste skjermbilde",
+    screens: {
+      home: "Hjem-skjermen i Noregna Kundeportal med varsel om manglende bilag og snarveier til opplasting, dagsoppgjør og dokumenter",
+      overview: "Oversikt-skjermen med nøkkeltall for manglende bilag, nye opplastinger, uleste meldinger og abonnement",
+      missing: "Skjermen for manglende bilag, med kommentar fra regnskapsføreren og knapp for å laste opp",
+      uploads: "Last opp bilag: velg måned, med antall filer per måned",
+      source: "Velg kilde for opplasting: kamera eller galleri",
+      settlement: "Dagsoppgjør med Z-rapport og omsetning fordelt på MVA-satser",
+      documents: "Mine dokumenter, med mapper for bilag, kasse, lønn og MVA sortert etter år",
+      chat: "Meldinger: chat med regnskapsføreren",
+      notifications: "Varsler om nye dokumenter og signeringsforespørsler",
+      profile: "Profil med konto, abonnement og juridisk informasjon",
+      switch: "Bytt firma: velg hvilket firma du vil bruke",
+      login: "Innloggingsskjermen i Noregna Kundeportal",
+      splash: "Velkomstskjermen Kundeportal, levert av Noregna",
+    },
   },
   contact: {
     title: "Kontakt oss",
@@ -725,6 +717,7 @@ const no: Dict = {
     errorRequired: "Dette feltet må fylles ut.",
     errorEmail: "Skriv inn en gyldig e-postadresse.",
     errorGeneric: "Meldingen kunne ikke sendes. Prøv igjen, eller send en e-post til post@noregna.no.",
+    errorCaptcha: "Bekreft at du ikke er en robot.",
     reset: "Send en ny melding",
     detailsTitle: "Kom i kontakt",
     addressLabel: "Adresse",
@@ -763,7 +756,6 @@ const no: Dict = {
 const en: Dict = {
   meta: {
     locale: "en",
-    htmlLang: "en",
     siteName: "Noregna",
     titleHome: "Noregna - engagement management and quality control for accountants",
     descHome:
@@ -785,24 +777,18 @@ const en: Dict = {
     contact: "Contact us",
     login: "Log in",
     tryFree: "Try for free",
-    bookDemo: "Book a demo",
     menu: "Menu",
     close: "Close",
     skipToContent: "Skip to content",
     languageLabel: "Language",
     themeLabel: "Switch between light and dark theme",
   },
-  routes: { home: "/", services: "/ourservices", app: "/app", contact: "/contact-us" },
   home: {
     heroEyebrow: "Welcome to Noregna",
     heroTitle: "Engagement management and quality control,",
     heroTitleAccent: "made easy for accountants",
     heroLead:
       "Full control over your engagements, with an overview of every deadline, quality assurance and anti-money-laundering follow-up.",
-    heroImageAlt:
-      "The Noregna dashboard showing deadline overview, report graph and document folders",
-    heroPlatform:
-      "Noregna offers a modern, cloud-based platform that handles customer management, task overview, and deadline management in one place. The solution ensures that work is carried out in a structured manner and documented in accordance with current requirements in GRFS.",
     heroTrustHints: ["Quality assurance", "Client due diligence", "Secure client dialogue", "Built in Norway"],
     ctaPrimary: "Try for free",
     ctaSecondary: "Book a demo",
@@ -897,7 +883,6 @@ const en: Dict = {
         },
       ],
       cta: "Try for Free",
-      imageAlt: "Noregna Client Portal shown on mobile",
     },
     overview: {
       title: "Full overview",
@@ -909,7 +894,6 @@ const en: Dict = {
       ],
       close:
         "With Noregna, you can focus on what matters most while staying confident that deadlines are met and documentation requirements are covered.",
-      imageAlt: "The Noregna dashboard with deadline overview and report graph",
     },
     outcomes: {
       title: "What your firm gets out of Noregna",
@@ -1182,8 +1166,6 @@ const en: Dict = {
     ],
   },
   appPage: {
-    videoAlt: "Demonstration of the Noregna Client Portal on mobile",
-    playLabel: "Play video",
     badgeApple: "Download the Noregna app from the App Store",
     badgeGoogle: "Download the Noregna app from Google Play",
     eyebrow: "Noregna Client Portal",
@@ -1241,8 +1223,23 @@ const en: Dict = {
         body: "Communication and document sharing happen inside the system, not over email.",
       },
     ],
-    galleryTitle: "How it looks",
-    screenAlt: "Screenshot from the Noregna Client Portal",
+    carouselPrev: "Previous screen",
+    carouselNext: "Next screen",
+    screens: {
+      home: "The Home screen of the Noregna Client Portal, with a missing-receipts alert and shortcuts to upload, daily settlement and documents",
+      overview: "The Overview screen with key figures for missing receipts, new uploads, unread messages and subscription",
+      missing: "The Missing receipts screen, with the accountant's comment and an upload button",
+      uploads: "Upload receipts: pick a month, with the number of files per month",
+      source: "Choose an upload source: camera or gallery",
+      settlement: "Daily settlement with Z-report and sales split by VAT rate",
+      documents: "My Documents, with folders for receipts, cash, payroll and VAT sorted by year",
+      chat: "Messages: chat with your accountant",
+      notifications: "Notifications about new documents and signing requests",
+      profile: "Profile with account, subscription and legal information",
+      switch: "Switch company: choose which company to use",
+      login: "The Noregna Client Portal login screen",
+      splash: "The Kundeportal welcome screen, powered by Noregna",
+    },
   },
   contact: {
     title: "Contact us",
@@ -1269,6 +1266,7 @@ const en: Dict = {
     errorRequired: "This field is required.",
     errorEmail: "Enter a valid email address.",
     errorGeneric: "The message could not be sent. Try again, or email post@noregna.no.",
+    errorCaptcha: "Please confirm that you are not a robot.",
     reset: "Send another message",
     detailsTitle: "Get in Touch",
     addressLabel: "Address",
@@ -1300,8 +1298,6 @@ const en: Dict = {
   },
 };
 
-export const DICT: Record<Locale, Dict> = { no, en };
-
 export function getDict(locale: Locale): Dict {
-  return DICT[locale];
+  return locale === "en" ? en : no;
 }

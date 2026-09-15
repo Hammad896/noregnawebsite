@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { FooterField } from "./FooterField";
 import { Header } from "./Header";
+import { JsonLd } from "./JsonLd";
 import { getDict, type Locale } from "@/content/site";
 
 /**
@@ -21,6 +22,7 @@ export function SiteShell({ locale, children }: { locale: Locale; children: Reac
         <style>{`[data-reveal]{opacity:1!important;transform:none!important}`}</style>
       </noscript>
 
+      <JsonLd locale={locale} />
       <Header t={t} locale={locale} />
       <main id="main" className="min-h-[60vh]">
         {children}

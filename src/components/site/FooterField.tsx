@@ -3,6 +3,7 @@ import Link from "next/link";
 import { FacebookLogo, InstagramLogo } from "@phosphor-icons/react/dist/ssr";
 import { COMPANY, EXTERNAL, type Dict, type Locale } from "@/content/site";
 import { Icon } from "@/lib/icons";
+import { shortName } from "@/lib/modules";
 import { hrefFor, legalHref, PAGE_KEYS, type PageKey } from "@/lib/routing";
 
 const NAV_LABEL: Record<PageKey, keyof Dict["nav"]> = {
@@ -45,6 +46,7 @@ export function FooterField({
               alt="Noregna"
               width={858}
               height={146}
+              sizes="160px"
               className="h-[27px] w-auto brightness-0 invert"
             />
             <p className="mt-5 max-w-[44ch] text-[0.9375rem] leading-[1.65] text-on-field-muted">
@@ -80,7 +82,7 @@ export function FooterField({
                   {group.map((m) => (
                     <li key={m.slug}>
                       <FieldLink href={`${hrefFor(locale, "services")}#${m.slug}`}>
-                        {m.tagline}
+                        {shortName(m.name)}
                       </FieldLink>
                     </li>
                   ))}

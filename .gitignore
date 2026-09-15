@@ -44,3 +44,9 @@ next-env.d.ts
 /.claude/
 /.gstack/
 /skills-lock.json
+
+# raw app screenshots (may contain real client data) - never commit
+/app images/
+
+# keep the env template
+!.env.example

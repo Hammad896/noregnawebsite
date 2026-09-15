@@ -13,7 +13,7 @@ export function ContactPage({ locale }: { locale: Locale }) {
   return (
     <Section size="sm">
       <div className="container-page">
-        <Reveal className="max-w-3xl">
+        <Reveal eager className="max-w-3xl">
           <Display level={1} as="h1">
             {c.title}
           </Display>
@@ -23,7 +23,7 @@ export function ContactPage({ locale }: { locale: Locale }) {
         </Reveal>
 
         <div className="mt-12 grid gap-6 lg:grid-cols-12 lg:gap-8">
-          <Reveal className="lg:col-span-7">
+          <Reveal eager className="lg:col-span-7">
             <ContactForm t={t} />
           </Reveal>
 
@@ -34,27 +34,27 @@ export function ContactPage({ locale }: { locale: Locale }) {
                   {c.detailsTitle}
                 </h2>
 
-                <dl className="mt-6 grid gap-6">
-                  <div className="flex gap-4">
+                <ul className="mt-6 grid gap-6">
+                  <li className="flex gap-4">
                     <span className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-accent-soft text-accent">
                       <Icon name="building" size={18} />
                     </span>
                     <div>
-                      <dt className="text-[0.8125rem] text-ink-subtle">{c.orgLabel}</dt>
-                      <dd className="mt-1 text-[0.9375rem] text-ink">
+                      <span className="block text-[0.8125rem] text-ink-subtle">{c.orgLabel}</span>
+                      <span className="mt-1 block text-[0.9375rem] text-ink">
                         <span className="block font-medium">{COMPANY.legalName}</span>
                         <span className="tnum text-ink-muted">{COMPANY.orgNr}</span>
-                      </dd>
+                      </span>
                     </div>
-                  </div>
+                  </li>
 
-                  <div className="flex gap-4">
+                  <li className="flex gap-4">
                     <span className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-accent-soft text-accent">
                       <Icon name="mapPin" size={18} />
                     </span>
                     <div>
-                      <dt className="text-[0.8125rem] text-ink-subtle">{c.addressLabel}</dt>
-                      <dd className="mt-1 text-[0.9375rem] text-ink">
+                      <span className="block text-[0.8125rem] text-ink-subtle">{c.addressLabel}</span>
+                      <span className="mt-1 block text-[0.9375rem] text-ink">
                         <span className="block">{COMPANY.address}</span>
                         <a
                           href={EXTERNAL.maps}
@@ -65,27 +65,27 @@ export function ContactPage({ locale }: { locale: Locale }) {
                           {t.footer.viewMap}
                           <Icon name="arrowUpRight" size={13} />
                         </a>
-                      </dd>
+                      </span>
                     </div>
-                  </div>
+                  </li>
 
-                  <div className="flex gap-4">
+                  <li className="flex gap-4">
                     <span className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-accent-soft text-accent">
                       <Icon name="mail" size={18} />
                     </span>
                     <div>
-                      <dt className="text-[0.8125rem] text-ink-subtle">{c.emailLabel}</dt>
-                      <dd className="mt-1 text-[0.9375rem]">
+                      <span className="block text-[0.8125rem] text-ink-subtle">{c.emailLabel}</span>
+                      <span className="mt-1 block text-[0.9375rem]">
                         <a
                           href={`mailto:${COMPANY.email}`}
                           className="text-ink transition-colors duration-200 hover:text-accent"
                         >
                           {COMPANY.email}
                         </a>
-                      </dd>
+                      </span>
                     </div>
-                  </div>
-                </dl>
+                  </li>
+                </ul>
               </div>
             </Reveal>
 

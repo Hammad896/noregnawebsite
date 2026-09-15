@@ -4,10 +4,66 @@ import Image from "next/image";
 import { Button } from "@/components/ui/Button";
 import { Eyebrow, Section } from "@/components/ui/Section";
 import { Reveal, RevealGroup, RevealItem } from "@/components/ui/Reveal";
-import { StoreBadges, VideoPlayer } from "@/components/product/VideoPlayer";
+import { PhoneFrame } from "@/components/product/PhoneFrame";
+import { StoreBadges } from "@/components/product/StoreBadges";
+import { shot } from "@/content/app-shots";
 import { EXTERNAL, getDict, type Locale } from "@/content/site";
 
-const SCREENS = [1, 2, 3, 4, 5, 6];
+/* The hero fan, five phones: home in front, overview and missing receipts
+   beside it, login and upload at the edges. */
+const HERO = {
+  outerLeft: shot("login"),
+  left: shot("overview"),
+  main: shot("home"),
+  right: shot("missing"),
+  outerRight: shot("uploads"),
+};
+
+/* One frame in the fan. Sizes step down at lg because the hero becomes a
+   two-column grid there and the phones share the row with the text. */
+function FanPhone({
+  shotKey,
+  alt,
+  ring,
+  side,
+  priority,
+}: {
+  shotKey: keyof typeof HERO;
+  alt: string;
+  ring: "main" | "inner" | "outer";
+  side?: "left" | "right";
+  priority?: boolean;
+}) {
+  const s = HERO[shotKey];
+  const size =
+    ring === "main"
+      ? "relative z-30 w-[200px] shrink-0 sm:w-[220px] lg:w-[180px] xl:w-[220px]"
+      : ring === "inner"
+        ? `relative z-20 mt-[52px] hidden w-[150px] shrink-0 sm:block md:mt-[60px] md:w-[170px] lg:w-[140px] xl:w-[170px] ${
+            side === "left" ? "-mr-7 -rotate-6" : "-ml-7 rotate-6"
+          }`
+        : // The outer pair only appears where the column is wide enough to hold
+          // five phones without cutting one in half: xl and up.
+          `relative z-10 mt-[104px] hidden w-[130px] shrink-0 xl:block ${
+            side === "left" ? "-mr-6 -rotate-12" : "-ml-6 rotate-12"
+          }`;
+  const sizes = ring === "main" ? "220px" : ring === "inner" ? "170px" : "130px";
+
+  return (
+    <PhoneFrame className={size}>
+      <Image
+        src={s.src}
+        alt={alt}
+        width={s.width}
+        height={s.height}
+        sizes={sizes}
+        priority={priority}
+        loading={priority ? undefined : "lazy"}
+        className="block h-auto w-full"
+      />
+    </PhoneFrame>
+  );
+}
 
 export function AppPage({ locale }: { locale: Locale }) {
   const t = getDict(locale);
@@ -25,9 +81,9 @@ export function AppPage({ locale }: { locale: Locale }) {
           }}
         />
         <div className="container-page">
-          <div className="grid items-center gap-12 lg:grid-cols-12 lg:gap-10">
-            <div className="lg:col-span-6">
-              <Reveal>
+          <div className="grid items-center gap-12 lg:grid-cols-12 lg:gap-8">
+            <div className="lg:col-span-5">
+              <Reveal eager>
                 <Eyebrow>{a.eyebrow}</Eyebrow>
                 <Display level={1} as="h1" className="mt-5">
                   {a.title}
@@ -51,53 +107,19 @@ export function AppPage({ locale }: { locale: Locale }) {
               </Reveal>
             </div>
 
-            <Reveal delay={0.1} className="lg:col-span-6" y={16}>
-              <div className="relative flex items-end justify-center gap-3 sm:gap-5">
-                {/* Chatnet on the left, home in the middle, folders on the right:
-                    three genuinely different screens rather than two near
-                    identical folder lists flanking the centre. */}
-                <Image
-                  src="/app-screens/screen-6.png"
-                  alt=""
-                  aria-hidden
-                  width={375}
-                  height={666}
-                  className="mb-10 hidden w-[30%] max-w-[11rem] drop-shadow-[0_18px_36px_rgba(9,63,39,0.15)] sm:block"
-                />
-                <Image
-                  src="/app-screens/screen-2.png"
-                  alt={a.screenAlt}
-                  width={375}
-                  height={666}
-                  priority
-                  className="w-[46%] max-w-[15rem] drop-shadow-[0_24px_44px_rgba(9,63,39,0.2)]"
-                />
-                <Image
-                  src="/app-screens/screen-4.png"
-                  alt=""
-                  aria-hidden
-                  width={375}
-                  height={666}
-                  className="mb-10 w-[36%] max-w-[12rem] drop-shadow-[0_18px_36px_rgba(9,63,39,0.15)] sm:w-[30%] sm:max-w-[11rem]"
-                />
+            <Reveal eager className="lg:col-span-7">
+              {/* Five CSS-drawn phones fanned out: home in front, two tilted
+                  behind it, two more at the edges. One phone under sm, three
+                  from sm, all five from md. */}
+              <div className="flex items-start justify-center">
+                <FanPhone shotKey="outerLeft" alt={a.screens.login} ring="outer" side="left" />
+                <FanPhone shotKey="left" alt={a.screens.overview} ring="inner" side="left" />
+                <FanPhone shotKey="main" alt={a.screens.home} ring="main" priority />
+                <FanPhone shotKey="right" alt={a.screens.missing} ring="inner" side="right" />
+                <FanPhone shotKey="outerRight" alt={a.screens.uploads} ring="outer" side="right" />
               </div>
             </Reveal>
           </div>
-        </div>
-      </Section>
-
-      <Section tone="sunken" size="sm">
-        <div className="container-page">
-          <Reveal>
-            <div className="mx-auto max-w-4xl">
-              <VideoPlayer
-                src="/brand/noregna-app.mp4"
-                poster="/brand/app-video-poster.jpg"
-                label={a.videoAlt}
-                playLabel={a.playLabel}
-              />
-            </div>
-          </Reveal>
         </div>
       </Section>
 
@@ -125,35 +147,6 @@ export function AppPage({ locale }: { locale: Locale }) {
             ))}
           </RevealGroup>
         </div>
-      </Section>
-
-      {/* Every screen the app actually ships, at a size you can read. */}
-      <Section tone="sunken" className="overflow-hidden">
-        <div className="container-page">
-          <Reveal>
-            <Display level={2} as="h2">
-              {a.galleryTitle}
-            </Display>
-          </Reveal>
-        </div>
-
-        <Reveal delay={0.08} className="mt-10">
-          <ul className="no-scrollbar flex snap-x snap-mandatory gap-5 overflow-x-auto px-5 pb-4 md:px-8 xl:px-10">
-            <li aria-hidden className="w-0 shrink-0 xl:w-[max(0px,calc((100vw-1240px)/2-2.5rem))]" />
-            {SCREENS.map((n) => (
-              <li key={n} className="shrink-0 snap-start">
-                <Image
-                  src={`/app-screens/screen-${n}.png`}
-                  alt={`${a.screenAlt} ${n}`}
-                  width={375}
-                  height={666}
-                  className="h-auto w-[13rem] drop-shadow-[0_16px_32px_rgba(9,63,39,0.14)] sm:w-[15rem]"
-                />
-              </li>
-            ))}
-            <li aria-hidden className="w-1 shrink-0" />
-          </ul>
-        </Reveal>
       </Section>
 
       <Section>

@@ -9,7 +9,8 @@ const html = readFileSync(join(process.cwd(), "src/content/legal/privacy-en.html
 
 export const metadata: Metadata = {
   title: `${t.footer.privacy} - Noregna`,
-  alternates: { canonical: "/en/privacy" },
+  description: "Privacy policy for noregna.no: how Noregna AS processes personal data, and the rights you have.",
+  alternates: { canonical: "/en/privacy", languages: { no: "/privacy", en: "/en/privacy" } },
 };
 
 export default function Page() {

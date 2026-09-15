@@ -6,7 +6,7 @@ import { Icon } from "@/lib/icons";
 import { hrefFor } from "@/lib/routing";
 
 /**
- * HERO E — GRADIENT FIELD
+ * HERO — GRADIENT FIELD
  *
  * Built on the pattern PowerOffice Go uses, which is worth borrowing because it
  * is a direct competitor and the structure genuinely works:
@@ -58,38 +58,38 @@ export function HeroPower({
     <section className="relative overflow-x-clip">
       {/* Colour field */}
       <div
-        className="relative pb-48 pt-20 md:pb-56 md:pt-24 lg:pb-64"
+        className="hero-field relative pb-48 pt-20 md:pb-56 md:pt-24 lg:pb-64"
         style={{
           background:
             "linear-gradient(168deg, oklch(0.404 0.1036 151.76) 0%, oklch(0.474 0.1243 151.76) 46%, oklch(0.556 0.1421 158) 100%)",
         }}
       >
         <div className="container-page relative text-center">
-          <Reveal>
-            <span className="inline-flex items-center gap-3.5 text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-on-field-accent">
+          <Reveal eager>
+            <span className="hero-in [--i:0] inline-flex items-center gap-3.5 text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-on-field-accent">
               <span aria-hidden className="font-mono tabular-nums tracking-[0.08em] opacity-70">
                 00
               </span>
-              <span aria-hidden className="h-px w-9 bg-on-field-line" />
+              <span aria-hidden className="hero-rule h-px w-9 bg-on-field-line" />
               {h.heroEyebrow}
             </span>
           </Reveal>
 
-          <Reveal delay={0.05}>
-            <h1 className="mx-auto mt-7 max-w-[20ch] text-balance text-[1.875rem] font-light leading-[1.08] tracking-[-0.028em] text-on-field sm:text-[2.25rem] lg:text-[2.75rem]">
+          <Reveal eager delay={0.05}>
+            <h1 className="hero-in [--i:1] mx-auto mt-7 max-w-[20ch] text-balance text-[1.875rem] font-light leading-[1.08] tracking-[-0.028em] text-on-field sm:text-[2.25rem] lg:text-[2.75rem]">
               {h.heroTitle}{" "}
               <span className="text-on-field-accent">{h.heroTitleAccent}</span>
             </h1>
           </Reveal>
 
-          <Reveal delay={0.1}>
-            <p className="mx-auto mt-7 max-w-[54ch] text-[1rem] leading-[1.62] text-on-field-muted md:text-[1.0625rem]">
+          <Reveal eager delay={0.1}>
+            <p className="hero-in [--i:2] mx-auto mt-7 max-w-[54ch] text-[1rem] leading-[1.62] text-on-field-muted md:text-[1.0625rem]">
               {h.heroLead}
             </p>
           </Reveal>
 
-          <Reveal delay={0.15}>
-            <div className="mt-9 flex flex-wrap justify-center gap-3">
+          <Reveal eager delay={0.15}>
+            <div className="hero-in [--i:3] mt-9 flex flex-wrap justify-center gap-3">
               <Button
                 href={EXTERNAL.app}
                 external
@@ -115,9 +115,10 @@ export function HeroPower({
       {/* The card straddles the seam: half on the field, half on the page. */}
       <div className="relative -mt-40 md:-mt-44 lg:-mt-52">
         <div className="container-page">
-          <Reveal y={20}>
-            <div className="mx-auto w-fit overflow-hidden rounded-[20px] border border-line bg-surface shadow-[0_40px_90px_-40px_oklch(0.252_0.0592_151.76_/_0.55)]">
+          <Reveal eager y={20}>
+            <div className="hero-card-in mx-auto w-fit overflow-hidden rounded-[20px] border border-line bg-surface shadow-[0_40px_90px_-40px_oklch(0.252_0.0592_151.76_/_0.55)]">
               <DashboardPreview
+                locale={locale}
                 crop={701}
                 className="[--s:0.29]! sm:[--s:0.49]! md:[--s:0.58]! lg:[--s:0.79]! xl:[--s:0.96]!"
               />
@@ -129,7 +130,7 @@ export function HeroPower({
       {/* Proof. Factual claims Noregna already publishes, nothing invented. */}
       <div className="border-b border-line bg-bg">
         <div className="container-page py-10 md:py-12">
-          <Reveal delay={0.1}>
+          <Reveal eager delay={0.1}>
             <ul className="flex flex-wrap items-center justify-center gap-x-12 gap-y-5">
               {PROOF.map((p, i) => (
                 <li key={p.key} className="flex items-center gap-2.5">

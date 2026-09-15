@@ -45,7 +45,7 @@ export function LegalPage({
   return (
     <Section size="sm">
       <div className="container-page">
-        <Reveal className="max-w-[70ch]">
+        <Reveal eager className="max-w-[70ch]">
           <Display level={1} as="h1">
             {title}
           </Display>

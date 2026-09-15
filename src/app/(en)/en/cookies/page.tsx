@@ -9,7 +9,8 @@ const html = readFileSync(join(process.cwd(), "src/content/legal/cookies-en.html
 
 export const metadata: Metadata = {
   title: `${t.footer.cookies} - Noregna`,
-  alternates: { canonical: "/en/cookies" },
+  description: "Cookies on noregna.no: which ones are set, what they do, and how long they last.",
+  alternates: { canonical: "/en/cookies", languages: { no: "/cookies", en: "/en/cookies" } },
 };
 
 export default function Page() {

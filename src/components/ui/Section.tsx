@@ -1,6 +1,4 @@
-import { Display } from "@/components/ui/Display";
 import type { ReactNode } from "react";
-import { Reveal } from "./Reveal";
 import { Icon } from "@/lib/icons";
 
 export function Section({
@@ -47,84 +45,6 @@ export function Eyebrow({ children }: { children: ReactNode }) {
       <span aria-hidden className="h-[2px] w-7 rounded-full bg-accent" />
       {children}
     </span>
-  );
-}
-
-export function SectionHead({
-  eyebrow,
-  title,
-  lead,
-  align = "left",
-  className = "",
-}: {
-  eyebrow?: ReactNode;
-  title: ReactNode;
-  lead?: ReactNode;
-  align?: "left" | "center";
-  className?: string;
-}) {
-  return (
-    <Reveal
-      className={`${align === "center" ? "mx-auto max-w-2xl text-center" : "max-w-2xl"} ${className}`}
-    >
-      {eyebrow ? <div className="mb-4">{eyebrow}</div> : null}
-      <Display level={2} as="h2">
-        {title}
-      </Display>
-      {lead ? (
-        <p className="mt-4 max-w-[62ch] text-[1rem] leading-[1.65] text-ink-muted">{lead}</p>
-      ) : null}
-    </Reveal>
-  );
-}
-
-export function Card({
-  children,
-  className = "",
-  interactive = false,
-  tone = "surface",
-}: {
-  children: ReactNode;
-  className?: string;
-  interactive?: boolean;
-  tone?: "surface" | "accent" | "outline";
-}) {
-  const tones = {
-    surface: "bg-surface border-line",
-    accent: "bg-accent-soft border-accent-soft-line",
-    outline: "bg-transparent border-line",
-  } as const;
-
-  return (
-    <div
-      className={`rounded-2xl border ${tones[tone]} ${interactive ? "hover-lift" : ""} ${className}`}
-    >
-      {children}
-    </div>
-  );
-}
-
-/** Checkmark list. Used wherever the source copy is genuinely a list of claims. */
-export function CheckList({
-  items,
-  className = "",
-  columns = 1,
-}: {
-  items: string[];
-  className?: string;
-  columns?: 1 | 2;
-}) {
-  return (
-    <ul
-      className={`grid gap-x-8 gap-y-3 ${columns === 2 ? "sm:grid-cols-2" : ""} ${className}`}
-    >
-      {items.map((item) => (
-        <li key={item} className="flex gap-3 text-[0.9375rem] leading-[1.6] text-ink-muted">
-          <CheckDot />
-          <span>{item}</span>
-        </li>
-      ))}
-    </ul>
   );
 }
 

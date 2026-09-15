@@ -48,7 +48,7 @@
 
   --ink: oklch(0.235 0.017 151.76);
   --ink-muted: oklch(0.492 0.014 151.76);
-  --ink-subtle: oklch(0.606 0.012 151.76);
+  --ink-subtle: oklch(0.53 0.012 151.76);
 
   /* Action. brand-700 reads 6.30:1 on white and carries white at 6.07:1 */
   --accent: var(--brand-700);
@@ -252,18 +252,172 @@
    UTILITIES
    ========================================================================== */
 
+/* The side gutter never drops below the phone's safe-area inset, so nothing
+   sits under a notch or the rounded corners in landscape. Needs
+   viewport-fit=cover, set in both root layouts. */
 @utility container-page {
   width: 100%;
   max-width: 1240px;
   margin-inline: auto;
-  padding-inline: 1.25rem;
+  padding-inline: max(1.25rem, env(safe-area-inset-left, 0px))
+    max(1.25rem, env(safe-area-inset-right, 0px));
 
   @media (min-width: 768px) {
-    padding-inline: 2rem;
+    padding-inline: max(2rem, env(safe-area-inset-left, 0px))
+      max(2rem, env(safe-area-inset-right, 0px));
   }
 
   @media (min-width: 1280px) {
     padding-inline: 2.5rem;
+  }
+}
+
+/* Reduced motion: reveal wrappers ship hidden in the HTML and are shown by
+   script. Force the shown state so the content never depends on a transition
+   (see Reveal.tsx for why the component cannot branch on the preference). */
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal] {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+/* Hero entrance and ambience (HeroPower). CSS only, so it begins at first
+   paint and never waits for the script; each piece rises in turn, the rule
+   draws in, the product card settles last, and two soft lights drift across
+   the green field. All of it is off under reduced motion. */
+@utility hero-in {
+  animation: hero-in 680ms var(--ease-out) both;
+  animation-delay: calc(var(--i, 0) * 90ms);
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+@utility hero-card-in {
+  animation: hero-card-in 820ms var(--ease-out) 240ms both;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+@utility hero-rule {
+  transform-origin: left center;
+  animation: hero-rule 640ms var(--ease-out) 140ms both;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+@utility hero-field {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+
+  &::before,
+  &::after {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    width: 70vmax;
+    height: 70vmax;
+    border-radius: 9999px;
+    pointer-events: none;
+    will-change: transform;
+  }
+
+  &::before {
+    top: -38vmax;
+    left: -26vmax;
+    background: radial-gradient(closest-side, oklch(0.64 0.148 158 / 0.32), transparent 72%);
+    animation: hero-drift-a 24s ease-in-out infinite alternate;
+  }
+
+  &::after {
+    bottom: -42vmax;
+    right: -22vmax;
+    background: radial-gradient(closest-side, oklch(0.3 0.08 151.76 / 0.6), transparent 72%);
+    animation: hero-drift-b 30s ease-in-out infinite alternate;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &::before,
+    &::after {
+      animation: none;
+    }
+  }
+}
+
+@keyframes hero-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes hero-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(28px) scale(0.975);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes hero-rule {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes hero-drift-a {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(9vw, 7vh, 0);
+  }
+}
+
+@keyframes hero-drift-b {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-8vw, -6vh, 0);
+  }
+}
+
+/* Entry for a state that appears in place: a success panel, an error line, a
+   results list. Short, no bounce, nothing under reduced motion. */
+@utility anim-in {
+  animation: anim-in 240ms var(--ease-out) both;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+@keyframes anim-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
   }
 }
 
@@ -448,4 +602,16 @@
 
 .legal-prose a:hover {
   text-decoration-thickness: 2px;
+}
+
+/* Kundeportal carousel (PhoneCarousel): one screen per step, eased. Reduced
+   motion gets an instant cut; the component also stops auto-advancing. */
+.phone-track {
+  transition: transform 900ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .phone-track {
+    transition: none;
+  }
 }

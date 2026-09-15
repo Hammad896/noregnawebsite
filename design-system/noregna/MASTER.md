@@ -276,12 +276,16 @@ Cut at 480 or 701. Never between 531 and 655: a table showing its column
 headings with no rows under them reads as a rendering fault, not as a crop. The
 hero shipped at 560 and looked broken.
 
-## 14. The header sells — LOCKED 2026-08-25
+## 14. The header sells — LOCKED 2026-08-25, amended 2026-09-15
 
 A four-word nav is an index, not an argument. Eight modules and three products
-were invisible until a visitor committed to a page, so `Våre systemer` now opens
-a panel carrying all of them, with Invoice's "free, separate" status stated in
-the chrome itself.
+were invisible until a visitor committed to a page, so the header carries a
+panel with all of them, with Invoice's "free, separate" status stated in the
+chrome itself.
+
+**Amended 2026-09-15:** `Våre systemer` is a link to `/ourservices`, and the
+caret beside it is the button that opens the panel. A nav label that only opened
+a dropdown felt broken to the owner; visitors expect a label to go somewhere.
 
 **Hover-to-open is gated on `matchMedia("(hover: hover)")`, never on
 `event.pointerType`.** The first implementation checked `pointerType !== "mouse"`
@@ -289,5 +293,46 @@ and the whole interaction silently did nothing, because that string is not
 reliable across browsers and automation. Ask the device about its capabilities,
 not the event about its provenance.
 
-The trigger is a real `<button>`: click toggles, Escape closes and returns
-focus, outside click closes, following a link closes. Nothing depends on hover.
+The caret is a real `<button>`: click toggles, Escape closes and returns focus
+to it, outside click closes, following a link closes. Nothing depends on hover.
+
+## 15. Launch pass — LOCKED 2026-09-15
+
+### Motion (supersedes the reveal notes in §5)
+
+- **Scroll reveals ship visible.** Only a block that mounts below the fold is
+  hidden, and it reveals on entry. Shipping every block hidden until the script
+  ran pushed Largest Contentful Paint out by the whole download on a phone.
+- **Never branch server and client markup on `prefers-reduced-motion`.** The
+  server cannot know the preference, and the mismatch once left the page blank
+  for exactly the visitors the branch was meant to help.
+- **The homepage hero has a CSS-only entrance.** Eyebrow, headline, lead and
+  buttons rise 90ms apart over 680ms; the index rule draws in; the product card
+  settles last. Two soft lights drift across the field on 24s and 30s loops.
+  CSS rather than script, so it starts at first paint. All off under reduced
+  motion. No bounce, per §5.
+- **Touch.** The phone menu is a sheet dismissed by Escape, the close button,
+  or dragging its handle up; drag starts only from the handle. The phone
+  carousel swipes with a 40px threshold and pauses auto-advance while dragging.
+
+### Product surfaces (amends §10)
+
+- Row 01 shows the seven platform modules, not a second copy of the hero
+  dashboard. A bordered card never bleeds past the container; only artwork
+  meant as a window onto the product may.
+- Phones are drawn as an iPhone 15 Pro in CSS (`PhoneFrame`): titanium band,
+  thin black bezel, concentric corners, Dynamic Island and side buttons, all in
+  container-width units so proportions hold at any size. The earlier thick
+  green bezel read as a toy and made the tilted phones look round.
+- Row 02 is one such phone cycling through the 13 sanitised app screens.
+- `/app` hero is a fan of phones: one under `sm`, three from `sm`, five from
+  `xl`. There is no screenshot gallery.
+- Module lists name modules by the product word (`Fremdrift`), never by the
+  tagline (`Oppdragsstyring`), so a link and the page it lands on agree.
+
+### Contrast (amends §1)
+
+`--ink-subtle` moved from `0.606` to `0.530` L, giving 5.25:1 on white and
+5.03:1 on `--bg`. The old value measured 3.83:1 and failed AA for helper text
+and small caps labels. The dashboard mock's greys, badges and green controls
+were darkened for the same reason; chart series hues are unchanged.

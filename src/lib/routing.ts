@@ -17,8 +17,7 @@ const SLUGS: Record<PageKey, string> = {
 };
 
 /** Legal routes are addressed by slug rather than by PageKey. */
-export const LEGAL_SLUGS = ["privacy", "cookies", "kjopsbetingelser"] as const;
-export type LegalSlug = (typeof LEGAL_SLUGS)[number];
+export type LegalSlug = "privacy" | "cookies" | "kjopsbetingelser";
 
 export function hrefFor(locale: Locale, page: PageKey): string {
   const slug = SLUGS[page];
@@ -36,10 +35,6 @@ export function pageFromPath(pathname: string): PageKey {
   const stripped = pathname.replace(/^\/en(?=\/|$)/, "").replace(/\/+$/, "");
   const found = PAGE_KEYS.find((key) => SLUGS[key] && stripped === `/${SLUGS[key]}`);
   return found ?? "home";
-}
-
-export function localeFromPath(pathname: string): Locale {
-  return pathname === "/en" || pathname.startsWith("/en/") ? "en" : "no";
 }
 
 /** The same page in the other language. */

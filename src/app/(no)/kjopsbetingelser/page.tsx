@@ -9,7 +9,8 @@ const html = readFileSync(join(process.cwd(), "src/content/legal/terms-no.html")
 
 export const metadata: Metadata = {
   title: `${t.footer.terms} - Noregna`,
-  alternates: { canonical: "/kjopsbetingelser" },
+  description: "Kjøps- og leveringsbetingelser for tjenestene fra Noregna AS.",
+  alternates: { canonical: "/kjopsbetingelser", languages: { no: "/kjopsbetingelser", en: "/en/kjopsbetingelser" } },
 };
 
 export default function Page() {

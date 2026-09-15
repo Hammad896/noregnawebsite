@@ -90,6 +90,7 @@ export function CompanySearch({
             aria-expanded={open}
             aria-controls={`${uid}-list`}
             aria-describedby={`${uid}-hint`}
+            aria-busy={busy}
             autoComplete="off"
             value={query}
             placeholder={c.fields.searchPlaceholder}
@@ -97,23 +98,24 @@ export function CompanySearch({
             className="w-full rounded-[10px] border border-line-strong bg-surface-raised py-2.5 pl-10 pr-3.5 text-[0.9375rem] text-ink placeholder:text-ink-subtle transition-[border-color] duration-200 focus:outline-none focus-visible:border-accent"
           />
           {busy ? (
-            <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[0.75rem] text-ink-subtle">
-              …
-            </span>
+            <span
+              aria-hidden
+              className="absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin rounded-full border-2 border-line-strong border-t-accent motion-reduce:animate-none"
+            />
           ) : null}
         </div>
 
         {open && hits.length > 0 ? (
           <ul
             id={`${uid}-list`}
-            className="mt-1 max-h-64 overflow-auto rounded-[10px] border border-line bg-surface-raised shadow-[var(--shadow-md)]"
+            className="anim-in mt-1 max-h-64 overflow-auto rounded-[10px] border border-line bg-surface-raised shadow-[var(--shadow-md)]"
           >
             {hits.map((h) => (
               <li key={h.orgNr}>
                 <button
                   type="button"
                   onClick={() => pick(h)}
-                  className="flex w-full items-center gap-3 px-3.5 py-2.5 text-left transition-colors duration-150 hover:bg-accent-soft"
+                  className="flex w-full items-center gap-3 px-3.5 py-2.5 text-left transition-colors duration-150 hover:bg-accent-soft active:bg-accent-soft"
                 >
                   <span className="text-accent">
                     <Buildings size={16} />

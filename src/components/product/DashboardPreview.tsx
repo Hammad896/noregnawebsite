@@ -21,6 +21,7 @@ import {
   Wallet,
 } from "@phosphor-icons/react/dist/ssr";
 import Image from "next/image";
+import type { Locale } from "@/content/site";
 
 /**
  * A faithful reproduction of the Noregna dashboard as it ships today.
@@ -37,6 +38,11 @@ import Image from "next/image";
  *
  * Layout, labels, colours, icon placement and proportions all follow the
  * shipped product. Only the data is substituted.
+ *
+ * The product ships in Norwegian and English, so the preview does too. Every
+ * visible label lives in LABELS below, keyed by locale, and the Norwegian set
+ * is copied from the product's own sidebar and dashboard cards. The Norwegian
+ * site is the root locale, so "no" is the default.
  */
 
 const GREEN = "#1a9d52";
@@ -48,60 +54,172 @@ const RED = "#e04256";
 const W = 1180;
 const H = 782;
 
-type Nav = { label: string; icon: React.ReactNode; caret?: boolean; badge?: string; active?: boolean };
+type NavItem = { label: string; icon: React.ReactNode; caret?: boolean; badge?: string; active?: boolean };
 
 const IC = { size: 13, weight: "regular" as const };
 
-const FREMDRIFT: Nav[] = [
-  { label: "Dashboard", icon: <Gauge {...IC} />, active: true },
-  { label: "Clients", icon: <Users {...IC} /> },
-  { label: "Overview Accounting", icon: <SquaresFour {...IC} />, caret: true },
-  { label: "Overview Salary", icon: <Wallet {...IC} />, caret: true },
-  { label: "Overview Invoicing", icon: <Receipt {...IC} /> },
-  { label: "Annual Accounts Overview", icon: <FolderOpen {...IC} />, caret: true },
-  { label: "Risk & money laundering", icon: <Scales {...IC} />, caret: true },
-  { label: "Quality Control", icon: <SealCheck {...IC} />, caret: true },
-  { label: "Email", icon: <Envelope {...IC} /> },
+type Labels = {
+  /** Client-company selector in the top bar. */
+  company: string;
+  user: string;
+  role: string;
+  newFiles: string;
+  overdueTasks: string;
+  groups: { fremdrift: string; rapportering: string; chatnet: string; byra: string };
+  fremdrift: string[];
+  rapportering: string[];
+  chatnet: string[];
+  byra: string[];
+  pageTitle: string;
+  deadline: string;
+  deadlineFilter: string;
+  year: string;
+  legend: { completed: string; pending: string; overdue: string };
+  reminder: string;
+  viewAll: string;
+  allYears: string;
+  stats: { overdue: string; dueToday: string; withinThree: string; upcoming: string };
+  actions: { vat: string; invoicing: string; amelding: string };
+  daysOverdue: (n: number) => string;
+  recent: string;
+  columns: { name: string; email: string; manager: string; date: string };
+  joinDates: string[];
+  donutAria: string;
+};
+
+const LABELS: Record<Locale, Labels> = {
+  no: {
+    company: "Demo Regnskap AS",
+    user: "Company Admin",
+    role: "Admin",
+    newFiles: "Nye Bilag",
+    overdueTasks: "Forfalte oppgaver",
+    groups: { fremdrift: "Fremdrift", rapportering: "Rapportering", chatnet: "Chatnet", byra: "Byrå" },
+    fremdrift: [
+      "Dashbord",
+      "Kunder",
+      "Oversikt Regnskap",
+      "Oversikt Lønn",
+      "Oversikt Fakturering",
+      "Oversikt Årsoppgjør",
+      "Risiko og hvitvasking",
+      "Kvalitetskontroll",
+      "E-post",
+    ],
+    rapportering: ["Dashbord", "Klientdokumentasjon", "Kundeportalen"],
+    chatnet: ["Chat"],
+    byra: ["Regnskapsfirma", "Internkontroll", "Innstillinger", "Avsluttede kunder"],
+    pageTitle: "Dashbord",
+    deadline: "Fristoversikt",
+    deadlineFilter: "Regnskap",
+    year: "2026",
+    legend: { completed: "Fullført", pending: "Venter", overdue: "Forfalt" },
+    reminder: "Oppgavepåminnelse",
+    viewAll: "Vis Alle >",
+    allYears: "Alle år",
+    stats: { overdue: "Forfalt", dueToday: "Har termin i dag", withinThree: "Innen 3 dager", upcoming: "Kommende" },
+    actions: { vat: "MVA-melding sendt", invoicing: "Fakturering utført", amelding: "A-melding sendt" },
+    daysOverdue: (n) => `${n} dager forfalt`,
+    recent: "Nylige Klienter",
+    columns: { name: "Kundenavn", email: "E-post", manager: "Oppdragsansvarlig", date: "Startdato" },
+    joinDates: ["18 aug 2026", "15 aug 2026", "14 aug 2026", "12 aug 2026"],
+    donutAria: "Fristoversikt",
+  },
+  en: {
+    company: "Test Company",
+    user: "Company Admin",
+    role: "Admin",
+    newFiles: "New Files Available",
+    overdueTasks: "Overdue tasks",
+    groups: { fremdrift: "Fremdrift", rapportering: "Rapportering", chatnet: "Chatnet", byra: "Accounting Company" },
+    fremdrift: [
+      "Dashboard",
+      "Clients",
+      "Overview Accounting",
+      "Overview Salary",
+      "Overview Invoicing",
+      "Annual Accounts Overview",
+      "Risk & money laundering",
+      "Quality Control",
+      "Email",
+    ],
+    rapportering: ["Dashboard", "Documents", "Client Assets"],
+    chatnet: ["Chat"],
+    byra: ["Accounting Company", "Internal Control", "Settings", "Terminated Clients"],
+    pageTitle: "Dashboard",
+    deadline: "Deadline Overview",
+    deadlineFilter: "Accounting Deadline",
+    year: "2026",
+    legend: { completed: "Completed", pending: "Pending", overdue: "Overdue" },
+    reminder: "Task Reminder",
+    viewAll: "View All >",
+    allYears: "All years",
+    stats: { overdue: "Overdue", dueToday: "Due Today", withinThree: "Within 3 days", upcoming: "Upcoming" },
+    actions: { vat: "VAT. submitted", invoicing: "Invoicing done", amelding: "A-Message sent" },
+    daysOverdue: (n) => `${n} days overdue`,
+    recent: "Recent Clients",
+    columns: { name: "Client Name", email: "Email", manager: "Manager", date: "Join Date" },
+    joinDates: ["18 Aug 2026", "15 Aug 2026", "14 Aug 2026", "12 Aug 2026"],
+    donutAria: "Deadline overview",
+  },
+};
+
+/* Icons, carets and badges are the same in both languages; only the label
+   text comes from LABELS. Order matches the product's sidebar. */
+const FREMDRIFT_META: Omit<NavItem, "label">[] = [
+  { icon: <Gauge {...IC} />, active: true },
+  { icon: <Users {...IC} /> },
+  { icon: <SquaresFour {...IC} />, caret: true },
+  { icon: <Wallet {...IC} />, caret: true },
+  { icon: <Receipt {...IC} /> },
+  { icon: <FolderOpen {...IC} />, caret: true },
+  { icon: <Scales {...IC} />, caret: true },
+  { icon: <SealCheck {...IC} />, caret: true },
+  { icon: <Envelope {...IC} /> },
 ];
 
-const RAPPORTERING: Nav[] = [
-  { label: "Dashboard", icon: <Gauge {...IC} /> },
-  { label: "Documents", icon: <FolderOpen {...IC} />, badge: "100" },
-  { label: "Client Assets", icon: <FolderOpen {...IC} /> },
+const RAPPORTERING_META: Omit<NavItem, "label">[] = [
+  { icon: <Gauge {...IC} /> },
+  { icon: <FolderOpen {...IC} />, badge: "100" },
+  { icon: <FolderOpen {...IC} /> },
 ];
 
-const CHATNET: Nav[] = [{ label: "Chat", icon: <ChatCircleDots {...IC} /> }];
+const CHATNET_META: Omit<NavItem, "label">[] = [{ icon: <ChatCircleDots {...IC} /> }];
 
-const COMPANY: Nav[] = [
-  { label: "Accounting Company", icon: <Buildings {...IC} />, caret: true },
-  { label: "Internal Control", icon: <GridFour {...IC} /> },
-  { label: "Settings", icon: <Sliders {...IC} />, caret: true },
-  { label: "Terminated Clients", icon: <UserCircleMinus {...IC} /> },
+const BYRA_META: Omit<NavItem, "label">[] = [
+  { icon: <Buildings {...IC} />, caret: true },
+  { icon: <GridFour {...IC} /> },
+  { icon: <Sliders {...IC} />, caret: true },
+  { icon: <UserCircleMinus {...IC} /> },
 ];
+
+function withLabels(meta: Omit<NavItem, "label">[], labels: string[]): NavItem[] {
+  return meta.map((m, i) => ({ ...m, label: labels[i] ?? "" }));
+}
 
 /* Dummy engagements. Dates are internally consistent with the overdue counts. */
-const TASKS = [
-  { client: "Alpha Solutions AS - Avd. Oslo", action: "VAT. submitted", date: "12.06.2026", days: 74 },
-  { client: "Beta Consulting AS - Avd. Bergen", action: "Invoicing done", date: "20.06.2026", days: 66 },
-  { client: "Gamma Enterprises AS - Avd. Oslo", action: "A-Message sent", date: "05.07.2026", days: 51 },
-  { client: "Delta Systems AS - Avd. Trondheim", action: "Invoicing done", date: "15.07.2026", days: 41 },
-  { client: "Epsilon Ventures AS - Avd. Oslo", action: "VAT. submitted", date: "01.08.2026", days: 24 },
+const TASKS: { client: string; action: keyof Labels["actions"]; date: string; days: number }[] = [
+  { client: "Alpha Solutions AS - Avd. Oslo", action: "vat", date: "12.06.2026", days: 74 },
+  { client: "Beta Consulting AS - Avd. Bergen", action: "invoicing", date: "20.06.2026", days: 66 },
+  { client: "Gamma Enterprises AS - Avd. Oslo", action: "amelding", date: "05.07.2026", days: 51 },
+  { client: "Delta Systems AS - Avd. Trondheim", action: "invoicing", date: "15.07.2026", days: 41 },
+  { client: "Epsilon Ventures AS - Avd. Oslo", action: "vat", date: "01.08.2026", days: 24 },
 ];
 
 const CLIENTS = [
-  { name: "Alpha Solutions AS", email: "contact@alphasolutions.no", manager: "Company Admin", date: "18 Aug 2026" },
-  { name: "Beta Consulting AS", email: "support@betaconsulting.no", manager: "Company Admin", date: "15 Aug 2026" },
-  { name: "Gamma Enterprises AS", email: "info@gammaenterprises.no", manager: "Company Admin", date: "14 Aug 2026" },
-  { name: "Delta Systems AS", email: "admin@deltasystems.no", manager: "Company Admin", date: "12 Aug 2026" },
+  { name: "Alpha Solutions AS", email: "contact@alphasolutions.no", manager: "Company Admin" },
+  { name: "Beta Consulting AS", email: "support@betaconsulting.no", manager: "Company Admin" },
+  { name: "Gamma Enterprises AS", email: "info@gammaenterprises.no", manager: "Company Admin" },
+  { name: "Delta Systems AS", email: "admin@deltasystems.no", manager: "Company Admin" },
 ];
 
 /* Deadline Overview: Completed 55, Pending 83, Overdue 68 (the product's own
    demo figures). Arcs run clockwise from twelve o'clock. */
 const SEGMENTS = [
-  { label: "Pending", value: 83, color: AMBER },
-  { label: "Overdue", value: 68, color: RED },
-  { label: "Completed", value: 55, color: GREEN },
-];
+  { key: "pending", value: 83, color: AMBER },
+  { key: "overdue", value: 68, color: RED },
+  { key: "completed", value: 55, color: GREEN },
+] as const;
 const TOTAL = SEGMENTS.reduce((n, s) => n + s.value, 0);
 
 const DONUT_R = 62;
@@ -109,22 +227,22 @@ const DONUT_C = 2 * Math.PI * DONUT_R;
 
 /* Arc lengths and start offsets resolved up front, so nothing mutates during
    render. Segments run clockwise from twelve o'clock. */
-const ARCS = SEGMENTS.reduce<{ label: string; color: string; len: number; offset: number }[]>(
+const ARCS = SEGMENTS.reduce<{ key: string; color: string; len: number; offset: number }[]>(
   (acc, seg) => {
     const len = (seg.value / TOTAL) * DONUT_C;
     const offset = acc.length ? acc[acc.length - 1].offset + acc[acc.length - 1].len : 0;
-    return [...acc, { label: seg.label, color: seg.color, len, offset }];
+    return [...acc, { key: seg.key, color: seg.color, len, offset }];
   },
   [],
 );
 
-function Donut() {
+function Donut({ label }: { label: string }) {
   return (
-    <svg viewBox="0 0 170 170" className="h-[170px] w-[170px]" role="img" aria-label="Deadline overview">
+    <svg viewBox="0 0 170 170" className="h-[170px] w-[170px]" role="img" aria-label={label}>
       <g transform="rotate(-90 85 85)">
         {ARCS.map((a) => (
           <circle
-            key={a.label}
+            key={a.key}
             cx="85"
             cy="85"
             r={DONUT_R}
@@ -140,7 +258,7 @@ function Donut() {
   );
 }
 
-function SideItem({ item }: { item: Nav }) {
+function SideItem({ item }: { item: NavItem }) {
   return (
     <div
       className={`flex items-center gap-2 rounded-[6px] px-2 py-[6px] ${
@@ -149,7 +267,7 @@ function SideItem({ item }: { item: Nav }) {
     >
       <span
         className={`flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-[4px] ${
-          item.active ? "bg-[#1a9d52] text-white" : "text-[#6b7280]"
+          item.active ? "bg-[#15803d] text-white" : "text-[#6b7280]"
         }`}
       >
         {item.icon}
@@ -162,19 +280,19 @@ function SideItem({ item }: { item: Nav }) {
         {item.label}
       </span>
       {item.badge ? (
-        <span className="rounded-full bg-[#ef4444] px-[5px] py-[1px] text-[8.5px] font-bold text-white">
+        <span className="rounded-full bg-[#dc2626] px-[5px] py-[1px] text-[8.5px] font-bold text-white">
           {item.badge}
         </span>
       ) : null}
-      {item.caret ? <CaretRight size={10} className="shrink-0 text-[#9ca3af]" /> : null}
+      {item.caret ? <CaretRight size={10} className="shrink-0 text-[#6b7280]" /> : null}
     </div>
   );
 }
 
-function SideGroup({ title, items }: { title: string; items: Nav[] }) {
+function SideGroup({ title, items }: { title: string; items: NavItem[] }) {
   return (
     <div className="mt-3">
-      <p className="px-2 pb-1 text-[8.5px] font-semibold uppercase tracking-[0.09em] text-[#9ca3af]">
+      <p className="px-2 pb-1 text-[8.5px] font-semibold uppercase tracking-[0.09em] text-[#6b7280]">
         {title}
       </p>
       <div className="grid gap-[2px]">
@@ -187,7 +305,7 @@ function SideGroup({ title, items }: { title: string; items: Nav[] }) {
 }
 
 function Stat({ value, label, tone }: { value: string; label: string; tone: "red" | "plain" | "green" }) {
-  const colors = { red: "#dc2626", plain: "#111827", green: "#16a34a" } as const;
+  const colors = { red: "#dc2626", plain: "#111827", green: "#15803d" } as const;
   return (
     <div className="flex-1 rounded-[7px] border border-[#e9ecef] bg-white py-[9px] text-center">
       <p className="text-[17px] font-bold leading-none" style={{ color: colors[tone] }}>
@@ -206,7 +324,7 @@ function Select({ label, wide }: { label: string; wide?: boolean }) {
       }`}
     >
       <span>{label}</span>
-      <CaretDown size={9} className="text-[#9ca3af]" />
+      <CaretDown size={9} className="text-[#6b7280]" />
     </div>
   );
 }
@@ -214,6 +332,7 @@ function Select({ label, wide }: { label: string; wide?: boolean }) {
 export function DashboardPreview({
   className = "",
   crop,
+  locale = "no",
 }: {
   className?: string;
   /**
@@ -235,8 +354,17 @@ export function DashboardPreview({
    * crop. Cut at 480 or 701, never between 531 and 655.
    */
   crop?: number;
+  /** Language of every label in the mock. Defaults to Norwegian, the root site. */
+  locale?: Locale;
 }) {
   const visible = crop ?? H;
+  const L = LABELS[locale];
+  const legend = [
+    { l: `${L.legend.completed} - 55`, c: GREEN },
+    { l: `${L.legend.pending} - 83`, c: AMBER },
+    { l: `${L.legend.overdue} - 68`, c: RED },
+  ];
+
   return (
     <div
       aria-hidden
@@ -263,9 +391,10 @@ export function DashboardPreview({
                 alt=""
                 width={858}
                 height={146}
+                sizes="160px"
                 className="h-[15px] w-auto"
               />
-              <span className="text-[#9ca3af]">
+              <span className="text-[#6b7280]">
                 <CaretRight size={11} />
               </span>
             </div>
@@ -276,17 +405,17 @@ export function DashboardPreview({
               </span>
               <span className="min-w-0">
                 <span className="block truncate text-[11px] font-semibold text-[#111827]">
-                  Company Admin
+                  {L.user}
                 </span>
-                <span className="block text-[9px] text-[#9ca3af]">Admin</span>
+                <span className="block text-[9px] text-[#6b7280]">{L.role}</span>
               </span>
             </div>
 
             <div className="mt-1 overflow-hidden">
-              <SideGroup title="Fremdrift" items={FREMDRIFT} />
-              <SideGroup title="Rapportering" items={RAPPORTERING} />
-              <SideGroup title="Chatnet" items={CHATNET} />
-              <SideGroup title="Accounting Company" items={COMPANY} />
+              <SideGroup title={L.groups.fremdrift} items={withLabels(FREMDRIFT_META, L.fremdrift)} />
+              <SideGroup title={L.groups.rapportering} items={withLabels(RAPPORTERING_META, L.rapportering)} />
+              <SideGroup title={L.groups.chatnet} items={withLabels(CHATNET_META, L.chatnet)} />
+              <SideGroup title={L.groups.byra} items={withLabels(BYRA_META, L.byra)} />
             </div>
           </aside>
 
@@ -295,21 +424,21 @@ export function DashboardPreview({
             {/* Top bar */}
             <div className="flex items-center justify-between gap-3 border-b border-[#eceff2] bg-white px-4 py-[9px]">
               <div className="flex min-w-[168px] items-center gap-2 rounded-[7px] border border-[#e2e5e9] px-2 py-[5px]">
-                <span className="flex h-[19px] w-[19px] items-center justify-center rounded-[5px] bg-[#1a9d52] text-white">
+                <span className="flex h-[19px] w-[19px] items-center justify-center rounded-[5px] bg-[#15803d] text-white">
                   <Buildings size={11} />
                 </span>
-                <span className="flex-1 text-[11px] font-medium text-[#111827]">Test Company</span>
-                <CaretDown size={9} className="text-[#9ca3af]" />
+                <span className="flex-1 text-[11px] font-medium text-[#111827]">{L.company}</span>
+                <CaretDown size={9} className="text-[#6b7280]" />
               </div>
 
               <div className="flex items-center gap-[6px]">
-                <span className="flex items-center gap-[6px] rounded-[7px] bg-[#1a9d52] px-[10px] py-[6px] text-[10.5px] font-semibold text-white">
-                  New Files Available
-                  <span className="rounded-[4px] bg-white/25 px-[5px] py-[1px] text-[9px]">190</span>
+                <span className="flex items-center gap-[6px] rounded-[7px] bg-[#15803d] px-[10px] py-[6px] text-[10.5px] font-semibold text-white">
+                  {L.newFiles}
+                  <span className="rounded-[4px] bg-black/20 px-[5px] py-[1px] text-[9px]">190</span>
                 </span>
-                <span className="flex items-center gap-[6px] rounded-[7px] bg-[#e0455f] px-[10px] py-[6px] text-[10.5px] font-semibold text-white">
-                  Overdue tasks
-                  <span className="rounded-[4px] bg-white/25 px-[5px] py-[1px] text-[9px]">1016</span>
+                <span className="flex items-center gap-[6px] rounded-[7px] bg-[#c93650] px-[10px] py-[6px] text-[10.5px] font-semibold text-white">
+                  {L.overdueTasks}
+                  <span className="rounded-[4px] bg-black/20 px-[5px] py-[1px] text-[9px]">1016</span>
                 </span>
                 {[
                   <GridFour key="a" size={12} />,
@@ -325,32 +454,28 @@ export function DashboardPreview({
                     {ic}
                   </span>
                 ))}
-                <span className="flex h-[26px] w-[26px] items-center justify-center rounded-full bg-[#1a9d52] text-[8.5px] font-bold text-white">
+                <span className="flex h-[26px] w-[26px] items-center justify-center rounded-full bg-[#15803d] text-[8.5px] font-bold text-white">
                   CA
                 </span>
               </div>
             </div>
 
             <div className="min-h-0 flex-1 overflow-hidden px-4 py-3">
-              <p className="text-[13px] font-semibold text-[#111827]">Dashboard</p>
+              <p className="text-[13px] font-semibold text-[#111827]">{L.pageTitle}</p>
 
               <div className="mt-2 flex gap-3">
                 {/* Deadline Overview */}
                 <div className="flex w-[300px] shrink-0 flex-col rounded-[9px] border border-[#eceff2] bg-white p-3">
-                  <p className="text-[12px] font-semibold text-[#111827]">Deadline Overview</p>
+                  <p className="text-[12px] font-semibold text-[#111827]">{L.deadline}</p>
                   <div className="mt-2 flex items-center justify-between gap-2">
-                    <Select label="Accounting Deadline" wide />
-                    <Select label="2026" />
+                    <Select label={L.deadlineFilter} wide />
+                    <Select label={L.year} />
                   </div>
                   <div className="mt-1 flex flex-1 items-center justify-center">
-                    <Donut />
+                    <Donut label={L.donutAria} />
                   </div>
                   <div className="flex items-center justify-center gap-3">
-                    {[
-                      { l: "Completed - 55", c: GREEN },
-                      { l: "Pending - 83", c: AMBER },
-                      { l: "Overdue - 68", c: RED },
-                    ].map((x) => (
+                    {legend.map((x) => (
                       <span key={x.l} className="flex items-center gap-1 text-[8.5px] text-[#4b5563]">
                         <span className="h-[6px] w-[6px] rounded-full" style={{ background: x.c }} />
                         {x.l}
@@ -365,18 +490,18 @@ export function DashboardPreview({
                     <div>
                       <p className="flex items-center gap-[5px] text-[12px] font-semibold text-[#111827]">
                         <Bell size={12} className="text-[#f5a623]" />
-                        Task Reminder
+                        {L.reminder}
                       </p>
-                      <p className="mt-[2px] text-[9px] text-[#2f7fd8]">View All &gt;</p>
+                      <p className="mt-[2px] text-[9px] text-[#1d6fd0]">{L.viewAll}</p>
                     </div>
-                    <Select label="All years" />
+                    <Select label={L.allYears} />
                   </div>
 
                   <div className="mt-2 flex gap-2">
-                    <Stat value="1016" label="Overdue" tone="red" />
-                    <Stat value="0" label="Due Today" tone="plain" />
-                    <Stat value="0" label="Within 3 days" tone="plain" />
-                    <Stat value="225" label="Upcoming" tone="green" />
+                    <Stat value="1016" label={L.stats.overdue} tone="red" />
+                    <Stat value="0" label={L.stats.dueToday} tone="plain" />
+                    <Stat value="0" label={L.stats.withinThree} tone="plain" />
+                    <Stat value="225" label={L.stats.upcoming} tone="green" />
                   </div>
 
                   <div className="mt-2 grid gap-[6px]">
@@ -388,15 +513,15 @@ export function DashboardPreview({
                         <div className="min-w-0">
                           <p className="truncate text-[10.5px] text-[#111827]">
                             <span className="font-semibold">{t.client}</span>
-                            <span className="text-[#9ca3af]"> · {t.action}</span>
+                            <span className="text-[#6b7280]"> · {L.actions[t.action]}</span>
                           </p>
-                          <p className="mt-[2px] flex items-center gap-[4px] text-[9px] text-[#9ca3af]">
+                          <p className="mt-[2px] flex items-center gap-[4px] text-[9px] text-[#6b7280]">
                             <CalendarBlank size={9} />
                             {t.date}
                           </p>
                         </div>
-                        <span className="shrink-0 rounded-[4px] bg-[#e0455f] px-[6px] py-[3px] text-[8.5px] font-semibold text-white">
-                          {t.days} days overdue
+                        <span className="shrink-0 rounded-[4px] bg-[#c93650] px-[6px] py-[3px] text-[8.5px] font-semibold text-white">
+                          {L.daysOverdue(t.days)}
                         </span>
                       </div>
                     ))}
@@ -406,13 +531,13 @@ export function DashboardPreview({
 
               {/* Recent Clients */}
               <div className="mt-3 rounded-[9px] border border-[#eceff2] bg-white p-3">
-                <p className="text-[12px] font-semibold text-[#111827]">Recent Clients</p>
+                <p className="text-[12px] font-semibold text-[#111827]">{L.recent}</p>
                 <div className="mt-2 overflow-hidden rounded-[6px] border border-[#eceff2]">
                   <div className="grid grid-cols-[1.3fr_1.6fr_1fr_0.8fr] bg-[#f4f6f8] px-3 py-[7px] text-[9.5px] font-semibold text-[#4b5563]">
-                    <span>Client Name</span>
-                    <span>Email</span>
-                    <span>Manager</span>
-                    <span>Join Date</span>
+                    <span>{L.columns.name}</span>
+                    <span>{L.columns.email}</span>
+                    <span>{L.columns.manager}</span>
+                    <span>{L.columns.date}</span>
                   </div>
                   {CLIENTS.map((c, i) => (
                     <div
@@ -424,7 +549,7 @@ export function DashboardPreview({
                       <span className="truncate font-medium text-[#111827]">{c.name}</span>
                       <span className="truncate">{c.email}</span>
                       <span className="truncate">{c.manager}</span>
-                      <span>{c.date}</span>
+                      <span>{L.joinDates[i]}</span>
                     </div>
                   ))}
                 </div>

@@ -3,6 +3,7 @@
 import { useId, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { CompanySearch } from "./CompanySearch";
+import { Recaptcha, RECAPTCHA_SITE_KEY } from "./Recaptcha";
 import { EXTERNAL, type Dict } from "@/content/site";
 import { Icon } from "@/lib/icons";
 
@@ -30,6 +31,10 @@ export function ContactForm({ t }: { t: Dict }) {
   // captcha, and it needs no third-party script on the page.
   const [trap, setTrap] = useState("");
   const [orgNr, setOrgNr] = useState("");
+  // reCAPTCHA v2 token, only in play when a site key is configured.
+  const [captcha, setCaptcha] = useState("");
+  const [captchaError, setCaptchaError] = useState(false);
+  const [captchaReset, setCaptchaReset] = useState(0);
 
   const c = t.contact;
 
@@ -60,14 +65,35 @@ export function ContactForm({ t }: { t: Dict }) {
       return;
     }
 
+    if (RECAPTCHA_SITE_KEY && !captcha) {
+      setCaptchaError(true);
+      return;
+    }
+
     setStatus("sending");
     try {
       const res = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...values, orgNr, company: trap, locale: t.meta.locale }),
+        body: JSON.stringify({
+          ...values,
+          orgNr,
+          company: trap,
+          locale: t.meta.locale,
+          recaptchaToken: captcha,
+        }),
       });
-      if (!res.ok) throw new Error(String(res.status));
+      if (!res.ok) {
+        const data = (await res.json().catch(() => ({}))) as { error?: string };
+        if (data.error === "captcha_required" || data.error === "captcha_invalid") {
+          // Tokens are single-use: clear the widget so the visitor can retry.
+          setCaptchaError(true);
+          setCaptchaReset((n) => n + 1);
+          setStatus("idle");
+          return;
+        }
+        throw new Error(String(res.status));
+      }
       setStatus("sent");
       setValues(EMPTY);
     } catch {
@@ -77,7 +103,7 @@ export function ContactForm({ t }: { t: Dict }) {
 
   if (status === "sent") {
     return (
-      <div className="rounded-2xl border border-accent-soft-line bg-accent-soft p-8 md:p-10">
+      <div className="anim-in rounded-2xl border border-accent-soft-line bg-accent-soft p-8 md:p-10">
         <span className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-accent text-accent-ink">
           <Icon name="check" size={22} weight="bold" />
         </span>
@@ -199,10 +225,28 @@ export function ContactForm({ t }: { t: Dict }) {
         />
       </div>
 
+      {RECAPTCHA_SITE_KEY ? (
+        <div className="mt-6 grid gap-2">
+          <Recaptcha
+            locale={t.meta.locale}
+            resetKey={captchaReset}
+            onToken={(token) => {
+              setCaptcha(token);
+              if (token) setCaptchaError(false);
+            }}
+          />
+          {captchaError ? (
+            <p role="alert" className="anim-in text-[0.8125rem] text-[#b3261e] dark:text-[#f2b8b5]">
+              {c.errorCaptcha}
+            </p>
+          ) : null}
+        </div>
+      ) : null}
+
       {status === "failed" ? (
         <p
           role="alert"
-          className="mt-6 rounded-[10px] border border-line bg-bg-sunken px-4 py-3 text-[0.9375rem] text-ink"
+          className="anim-in mt-6 rounded-[10px] border border-line bg-bg-sunken px-4 py-3 text-[0.9375rem] text-ink"
         >
           {c.errorGeneric}
         </p>

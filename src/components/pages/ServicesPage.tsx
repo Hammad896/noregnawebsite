@@ -5,6 +5,7 @@ import { Section } from "@/components/ui/Section";
 import { Reveal } from "@/components/ui/Reveal";
 import { getDict, type Locale } from "@/content/site";
 import { Icon } from "@/lib/icons";
+import { ServicesIndex } from "./ServicesIndex";
 
 export function ServicesPage({ locale }: { locale: Locale }) {
   const t = getDict(locale);
@@ -14,7 +15,7 @@ export function ServicesPage({ locale }: { locale: Locale }) {
     <>
       <Section size="sm" className="border-b border-line">
         <div className="container-page">
-          <Reveal className="max-w-3xl">
+          <Reveal eager className="max-w-3xl">
             <Display level={1} as="h1">
               {t.services.title}
             </Display>
@@ -29,36 +30,17 @@ export function ServicesPage({ locale }: { locale: Locale }) {
         <div className="container-page">
           <div className="grid gap-12 lg:grid-cols-12 lg:gap-14">
             {/* Index column. Replaces the original tab strip: same job, but it
-                stays with you as you read instead of scrolling away. */}
-            <nav aria-label={t.services.pick} className="min-w-0 lg:col-span-3">
-              <div className="lg:sticky lg:top-28">
-                <h2 className="text-[0.8125rem] font-semibold uppercase tracking-[0.12em] text-ink-subtle">
-                  {t.services.pick}
-                </h2>
-                <ul className="no-scrollbar mt-4 flex gap-2 overflow-x-auto pb-2 lg:mt-5 lg:grid lg:gap-1 lg:overflow-visible lg:pb-0">
-                  {modules.map((m) => (
-                    <li key={m.slug} className="shrink-0">
-                      <a
-                        href={`#${m.slug}`}
-                        className={`inline-flex h-9 items-center gap-2.5 whitespace-nowrap rounded-[10px] px-3 text-[0.9375rem] transition-colors duration-200 hover:bg-accent-soft hover:text-accent lg:w-full ${
-                          // Invoice is the one module that sits outside the
-                          // platform, so the index marks it the same way the
-                          // card does. Consistent meaning, both places.
-                          m.external
-                            ? "bg-accent-soft font-medium text-accent"
-                            : "text-ink-muted"
-                        }`}
-                      >
-                        <span className={m.external ? "text-accent" : "text-ink-subtle"}>
-                          <Icon name={m.icon} size={17} />
-                        </span>
-                        {m.tagline}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </nav>
+                stays with you as you read and marks the card being read. */}
+            <ServicesIndex
+              label={t.services.pick}
+              modules={modules.map(({ slug, name, tagline, icon, external }) => ({
+                slug,
+                name,
+                tagline,
+                icon,
+                external,
+              }))}
+            />
 
             <div className="grid min-w-0 gap-4 lg:col-span-9">
               {modules.map((m) => (

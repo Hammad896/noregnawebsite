@@ -46,7 +46,22 @@ function canHover() {
   return typeof window !== "undefined" && window.matchMedia("(hover: hover)").matches;
 }
 
-export function SystemsMenu({ t, locale }: { t: Dict; locale: Locale }) {
+/**
+ * The label is a real link to the services page; the caret beside it is the
+ * button that opens the panel. A click on "Våre systemer" therefore goes
+ * somewhere, as a visitor expects of a nav item, while hover (pointer devices)
+ * and the caret (everyone) still give the overview without leaving the page.
+ */
+export function SystemsMenu({
+  t,
+  locale,
+  active = false,
+}: {
+  t: Dict;
+  locale: Locale;
+  /** True on the services page itself, so the item reads as current. */
+  active?: boolean;
+}) {
   const [open, setOpen] = useState(false);
   const id = useId();
   const wrap = useRef<HTMLDivElement>(null);
@@ -128,24 +143,40 @@ export function SystemsMenu({ t, locale }: { t: Dict; locale: Locale }) {
         release();
       }}
     >
-      <button
-        ref={trigger}
-        type="button"
-        aria-expanded={open}
-        aria-controls={id}
-        onClick={() => setOpen((v) => !v)}
-        className={`inline-flex h-9 items-center gap-1.5 rounded-[10px] px-3 text-[0.9375rem] transition-colors duration-200 ${
-          open ? "bg-accent-soft text-ink" : "text-ink-muted hover:bg-accent-soft hover:text-ink"
+      <div
+        className={`inline-flex h-9 items-stretch rounded-[10px] transition-colors duration-200 ${
+          open || active ? "bg-accent-soft" : "hover:bg-accent-soft"
         }`}
       >
-        {t.nav.services}
-        <span
-          aria-hidden
-          className={`transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+        <Link
+          href={hrefFor(locale, "services")}
+          aria-current={active ? "page" : undefined}
+          onClick={() => setOpen(false)}
+          className={`inline-flex items-center rounded-l-[10px] pl-3 pr-1.5 text-[0.9375rem] transition-colors duration-200 ${
+            active ? "font-medium text-accent" : open ? "text-ink" : "text-ink-muted hover:text-ink"
+          }`}
         >
-          <Icon name="caretDown" size={14} />
-        </span>
-      </button>
+          {t.nav.services}
+        </Link>
+        <button
+          ref={trigger}
+          type="button"
+          aria-expanded={open}
+          aria-controls={id}
+          aria-label={t.services.pick}
+          onClick={() => setOpen((v) => !v)}
+          className={`press inline-flex items-center rounded-r-[10px] pl-1 pr-2.5 transition-colors duration-200 ${
+            active ? "text-accent" : "text-ink-muted hover:text-ink"
+          }`}
+        >
+          <span
+            aria-hidden
+            className={`transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+          >
+            <Icon name="caretDown" size={14} />
+          </span>
+        </button>
+      </div>
 
       <div
         id={id}
@@ -165,7 +196,7 @@ export function SystemsMenu({ t, locale }: { t: Dict; locale: Locale }) {
                     <Link
                       href={`${hrefFor(locale, "services")}#${m.slug}`}
                       onClick={() => setOpen(false)}
-                      className="group flex gap-3 rounded-[12px] p-2.5 transition-colors duration-200 hover:bg-accent-soft"
+                      className="group flex gap-3 rounded-[12px] p-2.5 transition-colors duration-200 hover:bg-accent-soft active:bg-accent-soft"
                     >
                       <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-[9px] bg-accent-soft text-accent transition-colors duration-200 group-hover:bg-accent group-hover:text-accent-ink">
                         <Icon name={m.icon} size={17} />
@@ -206,7 +237,7 @@ export function SystemsMenu({ t, locale }: { t: Dict; locale: Locale }) {
                       {...(pr.external
                         ? { target: "_blank", rel: "noopener noreferrer" }
                         : null)}
-                      className="group flex items-start gap-3 rounded-[12px] p-2.5 transition-colors duration-200 hover:bg-accent-soft"
+                      className="group flex items-start gap-3 rounded-[12px] p-2.5 transition-colors duration-200 hover:bg-accent-soft active:bg-accent-soft"
                     >
                       <span className="mt-0.5 text-accent">
                         <Icon name={pr.icon} size={17} />

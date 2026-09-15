@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { AnimatePresence, motion, useDragControls, useReducedMotion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { EXTERNAL, type Dict, type Locale } from "@/content/site";
@@ -25,6 +26,10 @@ export function Header({ t, locale }: { t: Dict; locale: Locale }) {
   const [open, setOpen] = useState(false);
   const [stuck, setStuck] = useState(false);
   const sentinel = useRef<HTMLDivElement>(null);
+  const reduce = useReducedMotion();
+  // The sheet is dragged only from its grab handle, never from its body, so
+  // scrolling a long menu is never mistaken for a swipe to dismiss.
+  const sheetDrag = useDragControls();
 
   // A sentinel plus IntersectionObserver, rather than a scroll listener that
   // would run on every frame and re-render the tree with it.
@@ -87,6 +92,7 @@ export function Header({ t, locale }: { t: Dict; locale: Locale }) {
                 width={858}
                 height={146}
                 priority
+                sizes="160px"
                 className="h-[26px] w-auto dark:brightness-[1.45] dark:saturate-[1.08]"
               />
             </Link>
@@ -100,7 +106,7 @@ export function Header({ t, locale }: { t: Dict; locale: Locale }) {
                   return (
                     <li key={key}>
                       {key === "services" ? (
-                        <SystemsMenu t={t} locale={locale} />
+                        <SystemsMenu t={t} locale={locale} active={active} />
                       ) : (
                         <Link
                           href={hrefFor(locale, key)}
@@ -149,12 +155,32 @@ export function Header({ t, locale }: { t: Dict; locale: Locale }) {
         </div>
 
         {/* Mobile sheet. Single column, full width, nothing carried over from the
-            desktop grid. */}
-        <div
-          id="mobile-nav"
-          hidden={!open}
-          className="border-t border-line bg-bg lg:hidden"
-        >
+            desktop grid. Slides open from under the bar and back again; swiping
+            the grab handle upwards dismisses it. The body scrolls on its own
+            when the expanded systems list runs past the viewport, and keeps
+            clear of the home indicator. */}
+        <AnimatePresence initial={false}>
+          {open ? (
+            <motion.div
+              key="mobile-nav"
+              id="mobile-nav"
+              className="overflow-hidden border-t border-line bg-bg lg:hidden"
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={reduce ? { duration: 0 } : { duration: 0.32, ease: [0.23, 1, 0.32, 1] }}
+            >
+              <motion.div
+                drag="y"
+                dragControls={sheetDrag}
+                dragListener={false}
+                dragConstraints={{ top: 0, bottom: 0 }}
+                dragElastic={reduce ? 0 : { top: 0.3, bottom: 0 }}
+                onDragEnd={(_, info) => {
+                  if (info.offset.y < -48 || info.velocity.y < -400) setOpen(false);
+                }}
+                className="max-h-[calc(100dvh-72px)] overflow-y-auto overscroll-contain pb-[env(safe-area-inset-bottom,0px)]"
+              >
           <div className="container-page py-5">
             <ul className="grid gap-1">
               {PAGE_KEYS.map((key) => {
@@ -181,7 +207,7 @@ export function Header({ t, locale }: { t: Dict; locale: Locale }) {
                               <Link
                                 href={`${hrefFor(locale, "services")}#${m.slug}`}
                                 onClick={() => setOpen(false)}
-                                className="flex items-center gap-2.5 rounded-[9px] px-3 py-2.5 text-[0.9375rem] text-ink-muted"
+                                className="flex items-center gap-2.5 rounded-[9px] px-3 py-2.5 text-[0.9375rem] text-ink-muted transition-colors duration-150 active:bg-accent-soft"
                               >
                                 <span className="text-accent">
                                   <Icon name={m.icon} size={16} />
@@ -202,7 +228,7 @@ export function Header({ t, locale }: { t: Dict; locale: Locale }) {
                       href={hrefFor(locale, key)}
                       onClick={() => setOpen(false)}
                       aria-current={active ? "page" : undefined}
-                      className={`flex h-12 items-center justify-between rounded-[10px] px-3 text-base ${
+                      className={`flex h-12 items-center justify-between rounded-[10px] px-3 text-base transition-colors duration-150 active:bg-accent-soft ${
                         active ? "bg-accent-soft font-medium text-accent" : "text-ink"
                       }`}
                     >
@@ -231,7 +257,20 @@ export function Header({ t, locale }: { t: Dict; locale: Locale }) {
               </div>
             </div>
           </div>
-        </div>
+
+                {/* Grab handle: drag it up to close. Pointer only; keyboard
+                    users have Escape and the close button in the bar. */}
+                <div
+                  aria-hidden
+                  onPointerDown={(e) => sheetDrag.start(e)}
+                  className="flex cursor-grab touch-none justify-center pb-3 pt-1 active:cursor-grabbing"
+                >
+                  <span className="h-1 w-10 rounded-full bg-line-strong" />
+                </div>
+              </motion.div>
+            </motion.div>
+          ) : null}
+        </AnimatePresence>
       </header>
     </>
   );

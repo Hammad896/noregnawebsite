@@ -1,5 +1,5 @@
 import { Faq } from "@/components/home/Faq";
-import { HeroPower } from "@/components/home/heroes/HeroPower";
+import { HeroPower } from "@/components/home/HeroPower";
 import { Outcomes } from "@/components/home/Outcomes";
 import { Overview } from "@/components/home/Overview";
 import { ProductTrio } from "@/components/home/ProductTrio";

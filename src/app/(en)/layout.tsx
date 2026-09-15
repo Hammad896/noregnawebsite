@@ -23,11 +23,14 @@ export const metadata: Metadata = {
   },
   twitter: { card: "summary_large_image" },
   robots: { index: true, follow: true },
+  verification: { google: process.env.GOOGLE_SITE_VERIFICATION || undefined },
 };
 
 export const viewport: Viewport = {
   // Light is the default the site ships in, so the browser chrome matches it.
   themeColor: "#f7f9f8",
+  // Let the page run under the notch; .container-page keeps content clear of it.
+  viewportFit: "cover",
 };
 
 export default function EnglishRootLayout({ children }: { children: React.ReactNode }) {

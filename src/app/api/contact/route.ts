@@ -1,18 +1,25 @@
 import { NextResponse } from "next/server";
+import { sendContactEmails, smtpConfigured } from "@/lib/contact-mail";
 
 /**
  * Contact form endpoint.
  *
- * Delivery is intentionally NOT implemented against a hardcoded provider. Set
- * CONTACT_WEBHOOK_URL to the endpoint that should receive the submission (a
- * mail service, a CRM intake, or Noregna's own backend) and it forwards there.
+ * Delivery, in order of preference:
  *
- * Without that variable:
- *   development -> accepts and reports success, so the flow is demonstrable,
- *                  and logs only that a submission happened, never its contents
- *   production  -> returns 503, so the form shows its error state and points
- *                  the visitor at post@noregna.no rather than silently
- *                  swallowing a real enquiry
+ *   1. SMTP (MAIL_* variables set)      -> e-mail to the Noregna inbox plus a
+ *                                          confirmation to the visitor, the same
+ *                                          two messages the Laravel site sent
+ *   2. CONTACT_WEBHOOK_URL               -> the submission is forwarded as JSON
+ *   3. neither, in development           -> accepted and reported as success so
+ *                                          the flow is demonstrable; only the fact
+ *                                          of a submission is logged, never its
+ *                                          contents
+ *   4. neither, in production            -> 503, so the form shows its error
+ *                                          state and points at post@noregna.no
+ *                                          rather than swallowing an enquiry
+ *
+ * Spam control: honeypot field, per-instance rate limit, and Google reCAPTCHA
+ * v2 when RECAPTCHA_SECRET_KEY is set (the guard the cookie declaration names).
  *
  * Nothing here writes personal data to disk or to logs.
  */
@@ -46,6 +53,30 @@ function clean(value: unknown, max: number): string {
   return typeof value === "string" ? value.trim().slice(0, max) : "";
 }
 
+/**
+ * Verifies a reCAPTCHA v2 token with Google. Returns "skipped" when no secret
+ * is configured, so a keyless deployment still has a working form.
+ */
+async function verifyCaptcha(token: string, ip: string): Promise<"ok" | "skipped" | "missing" | "invalid"> {
+  const secret = process.env.RECAPTCHA_SECRET_KEY;
+  if (!secret) return "skipped";
+  if (!token) return "missing";
+
+  try {
+    const res = await fetch("https://www.google.com/recaptcha/api/siteverify", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ secret, response: token, remoteip: ip }),
+      signal: AbortSignal.timeout(8_000),
+    });
+    const data = (await res.json()) as { success?: boolean };
+    return data.success ? "ok" : "invalid";
+  } catch (err) {
+    console.error("[contact] captcha verification failed:", err instanceof Error ? err.message : "unknown");
+    return "invalid";
+  }
+}
+
 export async function POST(request: Request) {
   const ip =
     request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
@@ -76,7 +107,7 @@ export async function POST(request: Request) {
     org: clean(body.org, MAX.org),
     orgNr: clean(body.orgNr, MAX.orgNr),
     message: clean(body.message, MAX.message),
-    locale: clean(body.locale, 5) === "en" ? "en" : "no",
+    locale: clean(body.locale, 5) === "en" ? ("en" as const) : ("no" as const),
   };
 
   const missing = (["firstName", "lastName", "email", "message"] as const).filter(
@@ -86,11 +117,29 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "validation_failed", fields: missing }, { status: 400 });
   }
 
+  const captcha = await verifyCaptcha(clean(body.recaptchaToken, 4000), ip);
+  if (captcha === "missing") {
+    return NextResponse.json({ error: "captcha_required" }, { status: 400 });
+  }
+  if (captcha === "invalid") {
+    return NextResponse.json({ error: "captcha_invalid" }, { status: 400 });
+  }
+
+  if (smtpConfigured()) {
+    try {
+      await sendContactEmails(payload);
+    } catch (err) {
+      console.error("[contact] e-mail delivery failed:", err instanceof Error ? err.message : "unknown");
+      return NextResponse.json({ error: "delivery_failed" }, { status: 502 });
+    }
+    return NextResponse.json({ ok: true, delivered: true });
+  }
+
   const webhook = process.env.CONTACT_WEBHOOK_URL;
 
   if (!webhook) {
     if (process.env.NODE_ENV === "production") {
-      console.error("[contact] CONTACT_WEBHOOK_URL is not set; submission not delivered");
+      console.error("[contact] neither MAIL_* nor CONTACT_WEBHOOK_URL is set; submission not delivered");
       return NextResponse.json({ error: "not_configured" }, { status: 503 });
     }
     console.info("[contact] accepted in development; delivery is not configured");
