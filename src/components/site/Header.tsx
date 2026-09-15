@@ -85,6 +85,15 @@ export function Header({ t, locale }: { t: Dict; locale: Locale }) {
               href={hrefFor(locale, "home")}
               className="press -m-1 shrink-0 rounded-[10px] p-1"
               aria-label={`Noregna, ${t.nav.home.toLowerCase()}`}
+              onClick={(e) => {
+                setOpen(false);
+                // A link to the page you are already on does not move you, so
+                // on the homepage the logo takes you back to the top instead.
+                if (pathname === hrefFor(locale, "home")) {
+                  e.preventDefault();
+                  window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
+                }
+              }}
             >
               <Image
                 src="/brand/noregna-wordmark.png"
@@ -202,6 +211,19 @@ export function Header({ t, locale }: { t: Dict; locale: Locale }) {
                           </span>
                         </summary>
                         <ul className="mb-1 grid gap-0.5 border-l-2 border-line pl-3">
+                          {/* The summary only expands the list, so the systems
+                              page itself needs its own way in on phones. */}
+                          <li>
+                            <Link
+                              href={hrefFor(locale, "services")}
+                              onClick={() => setOpen(false)}
+                              aria-current={current === "services" ? "page" : undefined}
+                              className="flex items-center justify-between gap-2.5 rounded-[9px] px-3 py-2.5 text-[0.9375rem] font-medium text-accent transition-colors duration-150 active:bg-accent-soft"
+                            >
+                              {t.nav.allSystems}
+                              <Icon name="arrowRight" size={16} />
+                            </Link>
+                          </li>
                           {t.services.modules.map((m) => (
                             <li key={m.slug}>
                               <Link

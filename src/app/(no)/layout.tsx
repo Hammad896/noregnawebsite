@@ -37,7 +37,9 @@ export const viewport: Viewport = {
 
 export default function NorwegianRootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="no" className={`${GeistSans.variable} ${GeistMono.variable}`}>
+    // data-scroll-behavior: keep smooth scrolling for in-page jumps, but let page
+    // changes jump instantly (Next.js 16 no longer does this by default).
+    <html lang="no" data-scroll-behavior="smooth" className={`${GeistSans.variable} ${GeistMono.variable}`}>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT }} />
       </head>

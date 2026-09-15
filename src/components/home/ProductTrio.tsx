@@ -86,7 +86,7 @@ export function ProductTrio({
       bleed: false,
       // Not the dashboard again (the hero has it): the platform as its seven
       // modules, which is the information this row is actually adding.
-      art: <PlatformModules t={t} />,
+      art: <PlatformModules t={t} locale={locale} />,
     },
     {
       index: "02",

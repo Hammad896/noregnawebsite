@@ -37,7 +37,13 @@ export function pageFromPath(pathname: string): PageKey {
   return found ?? "home";
 }
 
-/** The same page in the other language. */
+/**
+ * The same page in the other language. Every route, legal pages included, is
+ * mirrored under /en, so swapping the prefix is enough; resolving through
+ * PAGE_KEYS sent the legal pages to the homepage.
+ */
 export function swapLocale(pathname: string, to: Locale): string {
-  return hrefFor(to, pageFromPath(pathname));
+  const bare = pathname.replace(/^\/en(?=\/|$)/, "") || "/";
+  if (to === "no") return bare;
+  return bare === "/" ? "/en" : `/en${bare}`;
 }

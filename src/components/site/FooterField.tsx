@@ -41,14 +41,20 @@ export function FooterField({
       <div className="container-page py-16 md:py-20">
         <div className="grid gap-x-8 gap-y-12 lg:grid-cols-12">
           <div className="lg:col-span-4">
-            <Image
-              src="/brand/noregna-wordmark.png"
-              alt="Noregna"
-              width={858}
-              height={146}
-              sizes="160px"
-              className="h-[27px] w-auto brightness-0 invert"
-            />
+            <Link
+              href={hrefFor(locale, "home")}
+              aria-label={`Noregna, ${t.nav.home.toLowerCase()}`}
+              className="press -m-1 inline-flex rounded-[10px] p-1 focus-visible:outline-on-field-accent"
+            >
+              <Image
+                src="/brand/noregna-wordmark.png"
+                alt=""
+                width={858}
+                height={146}
+                sizes="160px"
+                className="h-[27px] w-auto brightness-0 invert"
+              />
+            </Link>
             <p className="mt-5 max-w-[44ch] text-[0.9375rem] leading-[1.65] text-on-field-muted">
               {t.footer.about}
             </p>

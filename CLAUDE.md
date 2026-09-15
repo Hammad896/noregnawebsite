@@ -46,6 +46,20 @@ the conventions and traps that are easy to break.
 ## Navigation
 
 - `Våre systemer` in the header is a link; the caret beside it opens the panel.
+  On phones the menu's expanded systems list starts with a "see all systems"
+  link, because the summary row itself only expands.
+- The header logo links home; on the homepage it scrolls back to the top
+  instead, since a link to the current page does not move you. The footer
+  logo links home too.
+- The language switch keeps you on the same page in the other language by
+  swapping the `/en` prefix (`swapLocale` in `routing.ts`). Every route,
+  legal pages included, exists in both trees, so never resolve it through
+  `PAGE_KEYS`: that sent the legal pages to the homepage.
+- Both root layouts carry `data-scroll-behavior="smooth"`. Next.js 16 no longer
+  cancels the site's smooth scrolling on page changes without it, which made
+  every navigation smooth-scroll.
+- Anything that looks like a tile or card and names a module is a link to that
+  module's card on the systems page.
 - Module lists show the product word via `shortName()` in `src/lib/modules.ts`,
   so a link reading "Fremdrift" lands on "Fremdrift", not on its tagline.
 - `ServicesIndex.tsx` highlights the module in the URL hash on arrival and

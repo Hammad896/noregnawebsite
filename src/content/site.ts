@@ -66,6 +66,7 @@ export type Dict = {
     contact: string;
     login: string;
     tryFree: string;
+    allSystems: string;
     menu: string;
     close: string;
     skipToContent: string;
@@ -228,6 +229,7 @@ const no: Dict = {
     contact: "Kontakt oss",
     login: "Logg inn",
     tryFree: "Prøv gratis",
+    allSystems: "Se alle systemer",
     menu: "Meny",
     close: "Lukk",
     skipToContent: "Hopp til innhold",
@@ -777,6 +779,7 @@ const en: Dict = {
     contact: "Contact us",
     login: "Log in",
     tryFree: "Try for free",
+    allSystems: "See all systems",
     menu: "Menu",
     close: "Close",
     skipToContent: "Skip to content",
